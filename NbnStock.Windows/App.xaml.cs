@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using NbnStock.Core.Data;
 
 namespace NbnStock.Windows
 {
@@ -9,6 +10,11 @@ namespace NbnStock.Windows
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            DatabaseInitaliser.Initialise();
+        }
     }
 
 }
