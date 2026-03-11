@@ -16,6 +16,31 @@ namespace NbnStock.Core.Data
             {
                 Directory.CreateDirectory(appFolderPath);
             }
+
+            string connectionString = $"Data Source={databaseFilePath}";
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+                string createTableSql = @"
+                    CREATE TABLE IF NOT EXISTS StockItems (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ItemCode TEXT NOT NULL UNIQUE,
+                        Name TEXT NOT NULL,
+                        Category TEXT,
+                        Quantity INTEGER NOT NULL DEFAULT 0,
+                        Unit TEXT NOT NULL,
+                        MinimumStock INTEGER NOT NULL DEFAULT 0,
+                        IsSerialised INTEGER NOT NULL,
+                        Notes TEXT,
+                        LastUpdatedUtc TEXT NOT NULL);
+                ";
+
+                using (var command = new SqliteCommand(createTableSql, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+            
         }
     }
 }
