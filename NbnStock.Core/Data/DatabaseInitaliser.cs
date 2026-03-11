@@ -6,12 +6,13 @@ namespace NbnStock.Core.Data
 {
     public static class DatabaseInitaliser
     {
+        public static string DatabasePath { get; private set; }
         public static void Initialise()
         {
             string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             string appFolderPath = System.IO.Path.Combine(appDataPath, "NbnStock");
             string databaseFilePath = System.IO.Path.Combine(appFolderPath, "NbnStock.db");
-           
+            DatabasePath = databaseFilePath;
             if (!Directory.Exists(appFolderPath))
             {
                 Directory.CreateDirectory(appFolderPath);
