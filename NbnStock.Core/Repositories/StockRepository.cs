@@ -13,6 +13,15 @@ namespace NbnStock.Core.Repositories
             using (var connection = new SqliteConnection(connectionString))
             {
                 connection.Open();
+
+                string sql = @"
+                INSERT INTO StockItems
+                (ItemCode, Name, Category, Quantity, Unit, MinimumStock, IsSerialised,
+                Notes, LastUpdatedUtc)
+                VALUES
+                (@ItemCode, @Name, @Category, @Quantity, @Unit, @MinimumStock,
+                @IsSerialised, @Notes, @LastUpdatedUtc);
+                ";
             }
             
         }
