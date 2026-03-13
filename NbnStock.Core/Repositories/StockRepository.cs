@@ -22,6 +22,11 @@ namespace NbnStock.Core.Repositories
                 (@ItemCode, @Name, @Category, @Quantity, @Unit, @MinimumStock,
                 @IsSerialised, @Notes, @LastUpdatedUtc);
                 ";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+
+                }
             }
             
         }
