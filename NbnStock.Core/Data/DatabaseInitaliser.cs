@@ -35,8 +35,23 @@ namespace NbnStock.Core.Data
                         Notes TEXT,
                         LastUpdatedUtc TEXT NOT NULL);
                 ";
+                string createSerialisedUnitsTableSql = @"
+                    CREATE TABLE IF NOT EXISTS SerialisedUnits (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        StockItemId INTEGER NOT NULL,
+                        SerialNumber TEXT NOT NULL UNIQUE,
+                        Status TEXT NOT NULL,
+                        Notes TEXT,
+                        LastUpdatedUtc TEXT NOT NULL,
+                        FOREIGN KEY (StockItemId) REFERENCES StockItems(Id)
+                    );
+                ";
 
                 using (var command = new SqliteCommand(createTableSql, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+                using (var command = new SqliteCommand(createSerialisedUnitsTableSql, connection))
                 {
                     command.ExecuteNonQuery();
                 }

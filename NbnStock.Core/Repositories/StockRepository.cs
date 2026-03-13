@@ -16,11 +16,11 @@ namespace NbnStock.Core.Repositories
 
                 string sql = @"
                 INSERT INTO StockItems
-                (ItemCode, Name, Category, Quantity, Unit, MinimumStock, IsSerialised,
-                Notes, LastUpdatedUtc)
-                VALUES
-                (@ItemCode, @Name, @Category, @Quantity, @Unit, @MinimumStock,
-                @IsSerialised, @Notes, @LastUpdatedUtc);
+                    (ItemCode, Name, Category, Quantity, Unit, MinimumStock, IsSerialised,
+                    Notes, LastUpdatedUtc)
+                    VALUES
+                    (@ItemCode, @Name, @Category, @Quantity, @Unit, @MinimumStock,
+                    @IsSerialised, @Notes, @LastUpdatedUtc);
                 ";
 
                 using (var command = new SqliteCommand(sql, connection))
