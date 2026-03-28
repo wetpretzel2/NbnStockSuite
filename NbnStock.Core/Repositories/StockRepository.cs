@@ -9,7 +9,7 @@ namespace NbnStock.Core.Repositories
     {
         public void AddStockItem(StockItem item)
         {
-            string connectionString = $"Data Source={DatabaseInitaliser.DatabasePath}";
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
             using (var connection = new SqliteConnection(connectionString))
             {
                 connection.Open();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using NbnStock.Core.Models;
 using NbnStock.Core.Data;
@@ -33,6 +34,78 @@ namespace NbnStock.Core.Repositories
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        public List<SerialisedUnit> GetAllSerialisedUnits()
+        {
+            var units = new List<SerialisedUnit>();
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string sql = @"SELECT Id, StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc FROM SerialisedUnits;";
+
+                using (var command = new SqliteCommand(sql, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var unit = new SerialisedUnit
+                        {
+                            Id = reader.GetInt32(0),
+                            StockItemId = reader.GetInt32(1),
+                            SerialNumber = reader.GetString(2),
+                            Status = reader.GetString(3),
+                            Notes = reader.IsDBNull(4) ? "" : reader.GetString(4),
+                            LastUpdatedUtc = DateTime.Parse(reader.GetString(5))
+                        };
+
+                        units.Add(unit);
+                    }
+                }
+            }
+            return units;
+        }
+        public List<SerialisedUnit> GetSerialisedUnitsByStatus(string status)
+        {
+            var units = new List<SerialisedUnit>();
+
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string sql = @"SELECT Id, StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc 
+                       FROM SerialisedUnits
+                       WHERE Status = @Status;";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@Status", status);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var unit = new SerialisedUnit
+                            {
+                                Id = reader.GetInt32(0),
+                                StockItemId = reader.GetInt32(1),
+                                SerialNumber = reader.GetString(2),
+                                Status = reader.GetString(3),
+                                Notes = reader.IsDBNull(4) ? "" : reader.GetString(4),
+                                LastUpdatedUtc = DateTime.Parse(reader.GetString(5))
+                            };
+
+                            units.Add(unit);
+                        }
+                    }
+                }
+            }
+
+            return units;
         }
     }
 }

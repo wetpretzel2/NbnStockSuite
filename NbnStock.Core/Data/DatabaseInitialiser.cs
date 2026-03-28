@@ -4,7 +4,7 @@ using System.IO;
 
 namespace NbnStock.Core.Data
 {
-    public static class DatabaseInitaliser
+    public static class DatabaseInitialiser
     {
         public static string DatabasePath { get; private set; }
         public static void Initialise()

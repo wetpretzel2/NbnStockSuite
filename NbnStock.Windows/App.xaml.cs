@@ -13,7 +13,7 @@ namespace NbnStock.Windows
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            DatabaseInitaliser.Initialise();
+            DatabaseInitialiser.Initialise();
         }
     }
 
