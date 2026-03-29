@@ -25,6 +25,17 @@ namespace NbnStock.Core.Repositories
 
                 using (var command = new SqliteCommand(sql, connection))
                 {
+                    command.Parameters.AddWithValue("@ItemCode", item.ItemCode);
+                    command.Parameters.AddWithValue("@Name", item.Name);
+                    command.Parameters.AddWithValue("@Category", item.Category ?? "");
+                    command.Parameters.AddWithValue("@Quantity", item.Quantity);
+                    command.Parameters.AddWithValue("@Unit", item.Unit);
+                    command.Parameters.AddWithValue("@MinimumStock", item.MinimumStock);
+                    command.Parameters.AddWithValue("@IsSerialised", item.IsSerialised ? 1 : 0);
+                    command.Parameters.AddWithValue("@Notes", item.Notes ?? "");
+                    command.Parameters.AddWithValue("@LastUpdatedUtc", item.LastUpdatedUtc.ToString("o"));
+
+                    command.ExecuteNonQuery();
 
                 }
             }

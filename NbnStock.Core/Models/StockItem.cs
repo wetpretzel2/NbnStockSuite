@@ -13,7 +13,7 @@ namespace NbnStock.Core.Models
         public int MinimumStock { get; set; }
         public bool IsSerialised { get; set; }
         public string Notes { get; set; }
-        public DateTime LastUpdatedUTC { get; set; } = DateTime.UtcNow;
+        public DateTime LastUpdatedUtc { get; set; } = DateTime.UtcNow;
         
     }
 }
