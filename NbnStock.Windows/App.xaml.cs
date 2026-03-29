@@ -13,17 +13,18 @@ namespace NbnStock.Windows
 
             DatabaseInitialiser.Initialise();
 
-            var serialRepo = new SerialisedUnitRepository();
+            var repo = new SerialisedUnitRepository();
 
-            serialRepo.AddSerialisedUnit(new SerialisedUnit
+            int newId = repo.AddSerialisedUnit(new SerialisedUnit
             {
                 StockItemId = 1,
-                SerialNumber = "TESTSERIAL001",
+                SerialNumber = "TESTSERIAL002",
                 Status = UnitStatus.OnHand.ToString(),
                 Notes = "Test serialised unit",
                 LastUpdatedUtc = DateTime.UtcNow
             });
-            serialRepo.UpdateSerialisedUnitStatus(1, UnitStatus.Installed.ToString());
+
+            repo.UpdateSerialisedUnitStatus(newId, UnitStatus.Installed.ToString());
         }
     }
 }
