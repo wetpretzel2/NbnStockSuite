@@ -8,7 +8,7 @@ namespace NbnStock.Core.Repositories
 {
     public class SerialisedUnitRepository
     {
-        public void AddSerialisedUnit(SerialisedUnit unit)
+        public int AddSerialisedUnit(SerialisedUnit unit)
         {
             string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
 
@@ -16,12 +16,12 @@ namespace NbnStock.Core.Repositories
             {
                 connection.Open();
 
-                string sql = @"
-            INSERT INTO SerialisedUnits
-            (StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc)
-            VALUES
-            (@StockItemId, @SerialNumber, @Status, @Notes, @LastUpdatedUtc);
-        ";
+                string sql = @"INSERT INTO SerialisedUnits
+                       (StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc)
+                       VALUES
+                       (@StockItemId, @SerialNumber, @Status, @Notes, @LastUpdatedUtc);
+                       
+                       SELECT last_insert_rowid();";
 
                 using (var command = new SqliteCommand(sql, connection))
                 {
@@ -31,7 +31,9 @@ namespace NbnStock.Core.Repositories
                     command.Parameters.AddWithValue("@Notes", unit.Notes ?? "");
                     command.Parameters.AddWithValue("@LastUpdatedUtc", unit.LastUpdatedUtc.ToString("o"));
 
-                    command.ExecuteNonQuery();
+                    var result = command.ExecuteScalar();
+
+                    return Convert.ToInt32(result);
                 }
             }
         }
@@ -109,27 +111,22 @@ namespace NbnStock.Core.Repositories
         }
         public void UpdateSerialisedUnitStatus(int id, string status)
         {
-            if (string.IsNullOrWhiteSpace(status))
-                throw new ArgumentException("Status cannot be empty.");
-
             string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
 
             using (var connection = new SqliteConnection(connectionString))
             {
                 connection.Open();
 
-                string sql = @"
-            UPDATE SerialisedUnits
-            SET Status = @Status,
-                LastUpdatedUtc = @LastUpdatedUtc
-            WHERE Id = @Id;
-        ";
+                string sql = @"UPDATE SerialisedUnits
+                       SET Status = @Status,
+                           LastUpdatedUtc = @LastUpdatedUtc
+                       WHERE Id = @Id;";
 
                 using (var command = new SqliteCommand(sql, connection))
                 {
-                    command.Parameters.AddWithValue("@Id", id);
                     command.Parameters.AddWithValue("@Status", status);
                     command.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
+                    command.Parameters.AddWithValue("@Id", id);
 
                     command.ExecuteNonQuery();
                 }
