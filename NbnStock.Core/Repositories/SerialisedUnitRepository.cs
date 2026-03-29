@@ -107,5 +107,33 @@ namespace NbnStock.Core.Repositories
 
             return units;
         }
+        public void UpdateSerialisedUnitStatus(int id, string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+                throw new ArgumentException("Status cannot be empty.");
+
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string sql = @"
+            UPDATE SerialisedUnits
+            SET Status = @Status,
+                LastUpdatedUtc = @LastUpdatedUtc
+            WHERE Id = @Id;
+        ";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@Status", status);
+                    command.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
+
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }
