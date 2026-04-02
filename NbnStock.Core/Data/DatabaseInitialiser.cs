@@ -33,6 +33,7 @@ namespace NbnStock.Core.Data
                         MinimumStock INTEGER NOT NULL DEFAULT 0,
                         IsSerialised INTEGER NOT NULL,
                         Notes TEXT,
+                        SupplyType TEXT NOT NULL,
                         LastUpdatedUtc TEXT NOT NULL);
                 ";
                 string createSerialisedUnitsTableSql = @"

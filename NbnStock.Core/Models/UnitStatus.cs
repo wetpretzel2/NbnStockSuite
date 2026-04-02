@@ -8,10 +8,11 @@ namespace NbnStock.Core.Models
     {
         OnHand,
         Installed,
-        Faulty,
-        AwaitingApproval,
+        EwastePendingSubmission,
+        EwasteAwaitingApproval,
         ApprovedForDisposal,
         Disposed
+
     }
 }
 
