@@ -13,18 +13,24 @@ namespace NbnStock.Windows
 
             DatabaseInitialiser.Initialise();
 
-            /* var repo = new SerialisedUnitRepository();
+            var stockRepo = new StockRepository();
 
-            int newId = repo.AddSerialisedUnit(new SerialisedUnit
-            {
-                StockItemId = 1,
-                SerialNumber = "TESTSERIAL006",
-                Status = UnitStatus.OnHand.ToString(),
-                Notes = "Test serialised unit",
-                LastUpdatedUtc = DateTime.UtcNow
-            });
+            //stockRepo.AddStockItem(new StockItem
+            //{
+            //    ItemCode = "ODU-NBN-001",
+            //    Name = "Outdoor Unit",
+            //    Category = "NBN Hardware",
+            //    Quantity = 32,
+            //    Unit = "Each",
+            //    MinimumStock = 4,
+            //    IsSerialised = true,
+            //    SupplyType = SupplyType.NbnSupplied,
+            //    Notes = "Initial test stock item",
+            //    LastUpdatedUtc = DateTime.UtcNow
+            //});
 
-            repo.UpdateSerialisedUnitStatus(newId, UnitStatus.EwastePendingSubmission.ToString()); */
+            var allItems = stockRepo.GetAllStockItems();
+            var nbnSuppliedItems = stockRepo.GetStockItemsBySupplyType(SupplyType.NbnSupplied);
         }
     }
 }
