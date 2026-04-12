@@ -126,5 +126,137 @@ namespace NbnStock.Core.Repositories
 
             return items;
         }
+        public StockItem? GetStockItemById(int id)
+        {
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string sql = @"
+            SELECT Id, ItemCode, Name, Category, Quantity, Unit, MinimumStock, IsSerialised, SupplyType, Notes, LastUpdatedUtc
+            FROM StockItems
+            WHERE Id = @Id;
+        ";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new StockItem
+                            {
+                                Id = reader.GetInt32(0),
+                                ItemCode = reader.GetString(1),
+                                Name = reader.GetString(2),
+                                Category = reader.GetString(3),
+                                Quantity = reader.GetInt32(4),
+                                Unit = reader.GetString(5),
+                                MinimumStock = reader.GetInt32(6),
+                                IsSerialised = reader.GetInt32(7) == 1,
+                                SupplyType = Enum.Parse<SupplyType>(reader.GetString(8)),
+                                Notes = reader.IsDBNull(9) ? "" : reader.GetString(9),
+                                LastUpdatedUtc = DateTime.Parse(reader.GetString(10))
+                            };
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public StockItem? GetStockItemByCode(string itemCode)
+        {
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string sql = @"
+            SELECT Id, ItemCode, Name, Category, Quantity, Unit, MinimumStock, IsSerialised, SupplyType, Notes, LastUpdatedUtc
+            FROM StockItems
+            WHERE ItemCode = @ItemCode;
+        ";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@ItemCode", itemCode);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new StockItem
+                            {
+                                Id = reader.GetInt32(0),
+                                ItemCode = reader.GetString(1),
+                                Name = reader.GetString(2),
+                                Category = reader.GetString(3),
+                                Quantity = reader.GetInt32(4),
+                                Unit = reader.GetString(5),
+                                MinimumStock = reader.GetInt32(6),
+                                IsSerialised = reader.GetInt32(7) == 1,
+                                SupplyType = Enum.Parse<SupplyType>(reader.GetString(8)),
+                                Notes = reader.IsDBNull(9) ? "" : reader.GetString(9),
+                                LastUpdatedUtc = DateTime.Parse(reader.GetString(10))
+                            };
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public void UpdateStockQuantity(int id, int quantity)
+        {
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string sql = @"
+            UPDATE StockItems
+            SET Quantity = @Quantity,
+                LastUpdatedUtc = @LastUpdatedUtc
+            WHERE Id = @Id;
+        ";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@Quantity", quantity);
+                    command.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
+                    command.Parameters.AddWithValue("@Id", id);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void AdjustStockQuantity(int id, int changeAmount)
+        {
+            var item = GetStockItemById(id);
+
+            if (item == null)
+            {
+                throw new Exception($"Stock item with Id {id} was not found.");
+            }
+
+            int newQuantity = item.Quantity + changeAmount;
+
+            if (newQuantity < 0)
+            {
+                throw new Exception("Stock quantity cannot go below zero.");
+            }
+
+            UpdateStockQuantity(id, newQuantity);
+        }
     }
 }

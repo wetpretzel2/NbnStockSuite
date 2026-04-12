@@ -15,21 +15,28 @@ namespace NbnStock.Windows
 
             var stockRepo = new StockRepository();
 
-            //stockRepo.AddStockItem(new StockItem
-            //{
-            //    ItemCode = "ODU-NBN-001",
-            //    Name = "Outdoor Unit",
-            //    Category = "NBN Hardware",
-            //    Quantity = 32,
-            //    Unit = "Each",
-            //    MinimumStock = 4,
-            //    IsSerialised = true,
-            //    SupplyType = SupplyType.NbnSupplied,
-            //    Notes = "Initial test stock item",
-            //    LastUpdatedUtc = DateTime.UtcNow
-            //});
-
+            // Get everything first so we can grab a real item to test with
             var allItems = stockRepo.GetAllStockItems();
+
+            if (allItems.Count > 0)
+            {
+                var firstItem = allItems[0];
+
+                // 1. Test GetStockItemById
+                var itemById = stockRepo.GetStockItemById(firstItem.Id);
+
+                // 2. Test GetStockItemByCode
+                var itemByCode = stockRepo.GetStockItemByCode(firstItem.ItemCode);
+
+                // 3. Test UpdateStockQuantity
+                stockRepo.UpdateStockQuantity(firstItem.Id, 99);
+                var afterUpdate = stockRepo.GetStockItemById(firstItem.Id);
+
+                // 4. Test AdjustStockQuantity
+                stockRepo.AdjustStockQuantity(firstItem.Id, -4);
+                var afterAdjust = stockRepo.GetStockItemById(firstItem.Id);
+            }
+
             var nbnSuppliedItems = stockRepo.GetStockItemsBySupplyType(SupplyType.NbnSupplied);
         }
     }
