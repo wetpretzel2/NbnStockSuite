@@ -27,7 +27,7 @@ namespace NbnStock.Core.Repositories
                 {
                     command.Parameters.AddWithValue("@StockItemId", unit.StockItemId);
                     command.Parameters.AddWithValue("@SerialNumber", unit.SerialNumber);
-                    command.Parameters.AddWithValue("@Status", unit.Status);
+                    command.Parameters.AddWithValue("@Status", unit.Status.ToString());
                     command.Parameters.AddWithValue("@Notes", unit.Notes ?? "");
                     command.Parameters.AddWithValue("@LastUpdatedUtc", unit.LastUpdatedUtc.ToString("o"));
 
@@ -42,11 +42,13 @@ namespace NbnStock.Core.Repositories
         {
             var units = new List<SerialisedUnit>();
             string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
             using (var connection = new SqliteConnection(connectionString))
             {
                 connection.Open();
 
-                string sql = @"SELECT Id, StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc FROM SerialisedUnits;";
+                string sql = @"SELECT Id, StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc 
+                               FROM SerialisedUnits;";
 
                 using (var command = new SqliteCommand(sql, connection))
                 using (var reader = command.ExecuteReader())
@@ -58,7 +60,7 @@ namespace NbnStock.Core.Repositories
                             Id = reader.GetInt32(0),
                             StockItemId = reader.GetInt32(1),
                             SerialNumber = reader.GetString(2),
-                            Status = reader.GetString(3),
+                            Status = Enum.Parse<UnitStatus>(reader.GetString(3)),
                             Notes = reader.IsDBNull(4) ? "" : reader.GetString(4),
                             LastUpdatedUtc = DateTime.Parse(reader.GetString(5))
                         };
@@ -67,9 +69,11 @@ namespace NbnStock.Core.Repositories
                     }
                 }
             }
+
             return units;
         }
-        public List<SerialisedUnit> GetSerialisedUnitsByStatus(string status)
+
+        public List<SerialisedUnit> GetSerialisedUnitsByStatus(UnitStatus status)
         {
             var units = new List<SerialisedUnit>();
 
@@ -80,12 +84,12 @@ namespace NbnStock.Core.Repositories
                 connection.Open();
 
                 string sql = @"SELECT Id, StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc 
-                       FROM SerialisedUnits
-                       WHERE Status = @Status;";
+                               FROM SerialisedUnits
+                               WHERE Status = @Status;";
 
                 using (var command = new SqliteCommand(sql, connection))
                 {
-                    command.Parameters.AddWithValue("@Status", status);
+                    command.Parameters.AddWithValue("@Status", status.ToString());
 
                     using (var reader = command.ExecuteReader())
                     {
@@ -96,7 +100,7 @@ namespace NbnStock.Core.Repositories
                                 Id = reader.GetInt32(0),
                                 StockItemId = reader.GetInt32(1),
                                 SerialNumber = reader.GetString(2),
-                                Status = reader.GetString(3),
+                                Status = Enum.Parse<UnitStatus>(reader.GetString(3)),
                                 Notes = reader.IsDBNull(4) ? "" : reader.GetString(4),
                                 LastUpdatedUtc = DateTime.Parse(reader.GetString(5))
                             };
@@ -109,7 +113,8 @@ namespace NbnStock.Core.Repositories
 
             return units;
         }
-        public void UpdateSerialisedUnitStatus(int id, string status)
+
+        public void UpdateSerialisedUnitStatus(int id, UnitStatus status)
         {
             string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
 
@@ -118,19 +123,111 @@ namespace NbnStock.Core.Repositories
                 connection.Open();
 
                 string sql = @"UPDATE SerialisedUnits
-                       SET Status = @Status,
-                           LastUpdatedUtc = @LastUpdatedUtc
-                       WHERE Id = @Id;";
+                               SET Status = @Status,
+                                   LastUpdatedUtc = @LastUpdatedUtc
+                               WHERE Id = @Id;";
 
                 using (var command = new SqliteCommand(sql, connection))
                 {
-                    command.Parameters.AddWithValue("@Status", status);
+                    command.Parameters.AddWithValue("@Status", status.ToString());
                     command.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
                     command.Parameters.AddWithValue("@Id", id);
 
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        public SerialisedUnit? GetSerialisedUnitBySerial(string serialNumber)
+        {
+            string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string sql = @"SELECT Id, StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc
+                               FROM SerialisedUnits
+                               WHERE SerialNumber = @SerialNumber;";
+
+                using (var command = new SqliteCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@SerialNumber", serialNumber);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new SerialisedUnit
+                            {
+                                Id = reader.GetInt32(0),
+                                StockItemId = reader.GetInt32(1),
+                                SerialNumber = reader.GetString(2),
+                                Status = Enum.Parse<UnitStatus>(reader.GetString(3)),
+                                Notes = reader.IsDBNull(4) ? "" : reader.GetString(4),
+                                LastUpdatedUtc = DateTime.Parse(reader.GetString(5))
+                            };
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public void ReceiveSerialisedUnit(int stockItemId, string serialNumber)
+        {
+            if (string.IsNullOrWhiteSpace(serialNumber))
+            {
+                throw new Exception("Serial number cannot be empty.");
+            }
+
+            var unit = new SerialisedUnit
+            {
+                StockItemId = stockItemId,
+                SerialNumber = serialNumber,
+                Status = UnitStatus.OnHand,
+                Notes = "",
+                LastUpdatedUtc = DateTime.UtcNow
+            };
+
+            AddSerialisedUnit(unit);
+        }
+
+        public void MarkUnitInstalled(string serialNumber)
+        {
+            var unit = GetSerialisedUnitBySerial(serialNumber);
+
+            if (unit == null)
+            {
+                throw new Exception("Serialised unit not found.");
+            }
+
+            if (unit.Status != UnitStatus.OnHand)
+            {
+                throw new Exception("Only OnHand units can be installed.");
+            }
+
+            UpdateSerialisedUnitStatus(unit.Id, UnitStatus.Installed);
+        }
+
+        public void AddUnitToEwaste(int stockItemId, string serialNumber)
+        {
+            if (string.IsNullOrWhiteSpace(serialNumber))
+            {
+                throw new Exception("Serial number cannot be empty.");
+            }
+
+            var unit = new SerialisedUnit
+            {
+                StockItemId = stockItemId,
+                SerialNumber = serialNumber,
+                Status = UnitStatus.EwastePendingSubmission,
+                Notes = "Removed from site",
+                LastUpdatedUtc = DateTime.UtcNow
+            };
+
+            AddSerialisedUnit(unit);
         }
     }
 }
