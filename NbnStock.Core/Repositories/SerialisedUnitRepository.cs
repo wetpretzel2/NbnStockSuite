@@ -200,10 +200,6 @@ namespace NbnStock.Core.Repositories
             }
 
             GetValidSerialisedStockItem(stockItemId);
-            if (string.IsNullOrWhiteSpace(serialNumber))
-            {
-                throw new InvalidOperationException("Serial number cannot be empty.");
-            }
 
             var existing = GetSerialisedUnitBySerial(serialNumber);
 
@@ -249,11 +245,6 @@ namespace NbnStock.Core.Repositories
             }
 
             GetValidSerialisedStockItem(stockItemId);
-            
-            if (string.IsNullOrWhiteSpace(serialNumber))
-            {
-                throw new InvalidOperationException("Serial number cannot be empty.");
-            }
 
             var existing = GetSerialisedUnitBySerial(serialNumber);
 
