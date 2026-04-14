@@ -182,6 +182,13 @@ namespace NbnStock.Core.Repositories
                 throw new Exception("Serial number cannot be empty.");
             }
 
+            var existing = GetSerialisedUnitBySerial(serialNumber);
+
+            if (existing != null)
+            {
+                throw new Exception("Serial number already exists.");
+            }
+
             var unit = new SerialisedUnit
             {
                 StockItemId = stockItemId,
