@@ -258,5 +258,24 @@ namespace NbnStock.Core.Repositories
 
             UpdateStockQuantity(id, newQuantity);
         }
+        public void ReceiveStock(int id, int quantityReceived)
+        {
+            if (quantityReceived <= 0)
+            {
+                throw new Exception("Quantity received must be greater than zero.");
+            }
+
+            AdjustStockQuantity(id, quantityReceived);
+        }
+
+        public void ConsumeStock(int id, int quantityUsed)
+        {
+            if (quantityUsed <= 0)
+            {
+                throw new Exception("Quantity used must be greater than zero.");
+            }
+
+            AdjustStockQuantity(id, -quantityUsed);
+        }
     }
 }
