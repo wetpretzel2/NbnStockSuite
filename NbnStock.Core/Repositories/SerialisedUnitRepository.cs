@@ -194,6 +194,7 @@ namespace NbnStock.Core.Repositories
 
         public void ReceiveSerialisedUnit(int stockItemId, string serialNumber)
         {
+            serialNumber = serialNumber?.Trim() ?? "";
             if (string.IsNullOrWhiteSpace(serialNumber))
             {
                 throw new InvalidOperationException("Serial number cannot be empty.");
@@ -222,6 +223,7 @@ namespace NbnStock.Core.Repositories
 
         public void MarkUnitInstalled(string serialNumber)
         {
+            serialNumber = serialNumber?.Trim() ?? "";
             var unit = GetSerialisedUnitBySerial(serialNumber);
 
             if (unit == null)
@@ -239,6 +241,7 @@ namespace NbnStock.Core.Repositories
 
         public void AddUnitToEwaste(int stockItemId, string serialNumber)
         {
+            serialNumber = serialNumber?.Trim() ?? "";
             if (string.IsNullOrWhiteSpace(serialNumber))
             {
                 throw new InvalidOperationException("Serial number cannot be empty.");
@@ -266,6 +269,7 @@ namespace NbnStock.Core.Repositories
         }
         public void MoveToNextEwasteStage(string serialNumber)
         {
+            serialNumber = serialNumber?.Trim() ?? "";
             var unit = GetSerialisedUnitBySerial(serialNumber);
 
             if (unit == null)
