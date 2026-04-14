@@ -8,6 +8,23 @@ namespace NbnStock.Core.Repositories
 {
     public class SerialisedUnitRepository
     {
+        private StockItem GetValidSerialisedStockItem(int stockItemId)
+        {
+            var stockRepo = new StockRepository();
+            var item = stockRepo.GetStockItemById(stockItemId);
+
+            if (item == null)
+            {
+                throw new InvalidOperationException("Stock item not found.");
+            }
+
+            if (!item.IsSerialised)
+            {
+                throw new InvalidOperationException("Stock item is not serialised.");
+            }
+
+            return item;
+        }
         public int AddSerialisedUnit(SerialisedUnit unit)
         {
             string connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
@@ -177,6 +194,7 @@ namespace NbnStock.Core.Repositories
 
         public void ReceiveSerialisedUnit(int stockItemId, string serialNumber)
         {
+            GetValidSerialisedStockItem(stockItemId);
             if (string.IsNullOrWhiteSpace(serialNumber))
             {
                 throw new InvalidOperationException("Serial number cannot be empty.");
@@ -220,6 +238,7 @@ namespace NbnStock.Core.Repositories
 
         public void AddUnitToEwaste(int stockItemId, string serialNumber)
         {
+            GetValidSerialisedStockItem(stockItemId);
             if (string.IsNullOrWhiteSpace(serialNumber))
             {
                 throw new InvalidOperationException("Serial number cannot be empty.");
