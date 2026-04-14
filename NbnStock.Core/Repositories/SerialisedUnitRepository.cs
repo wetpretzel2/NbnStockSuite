@@ -179,14 +179,14 @@ namespace NbnStock.Core.Repositories
         {
             if (string.IsNullOrWhiteSpace(serialNumber))
             {
-                throw new Exception("Serial number cannot be empty.");
+                throw new InvalidOperationException("Serial number cannot be empty.");
             }
 
             var existing = GetSerialisedUnitBySerial(serialNumber);
 
             if (existing != null)
             {
-                throw new Exception("Serial number already exists.");
+                throw new InvalidOperationException("Serial number already exists.");
             }
 
             var unit = new SerialisedUnit
@@ -207,12 +207,12 @@ namespace NbnStock.Core.Repositories
 
             if (unit == null)
             {
-                throw new Exception("Serialised unit not found.");
+                throw new InvalidOperationException("Serialised unit not found.");
             }
 
             if (unit.Status != UnitStatus.OnHand)
             {
-                throw new Exception("Only OnHand units can be installed.");
+                throw new InvalidOperationException("Only OnHand units can be installed.");
             }
 
             UpdateSerialisedUnitStatus(unit.Id, UnitStatus.Installed);
@@ -222,7 +222,14 @@ namespace NbnStock.Core.Repositories
         {
             if (string.IsNullOrWhiteSpace(serialNumber))
             {
-                throw new Exception("Serial number cannot be empty.");
+                throw new InvalidOperationException("Serial number cannot be empty.");
+            }
+
+            var existing = GetSerialisedUnitBySerial(serialNumber);
+
+            if (existing != null)
+            {
+                throw new InvalidOperationException("Serial number already exists.");
             }
 
             var unit = new SerialisedUnit
@@ -235,6 +242,25 @@ namespace NbnStock.Core.Repositories
             };
 
             AddSerialisedUnit(unit);
+        }
+        public void MoveToNextEwasteStage(string serialNumber)
+        {
+            var unit = GetSerialisedUnitBySerial(serialNumber);
+
+            if (unit == null)
+            {
+                throw new InvalidOperationException("Serialised unit not found.");
+            }
+
+            UnitStatus nextStatus = unit.Status switch
+            {
+                UnitStatus.EwastePendingSubmission => UnitStatus.EwasteAwaitingApproval,
+                UnitStatus.EwasteAwaitingApproval => UnitStatus.ApprovedForDisposal,
+                UnitStatus.ApprovedForDisposal => UnitStatus.Disposed,
+                _ => throw new InvalidOperationException("Invalid ewaste transition.")
+            };
+
+            UpdateSerialisedUnitStatus(unit.Id, nextStatus);
         }
     }
 }
