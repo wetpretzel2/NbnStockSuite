@@ -6,7 +6,8 @@
         mc:Ignorable="d"
         Title="NbnStockSuite"
         Height="500"
-        Width="900">
+        Width="900"
+        Background="{DynamicResource WindowBackgroundBrush}">
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -19,7 +20,8 @@
                    Text="Stock Items"
                    FontSize="22"
                    FontWeight="Bold"
-                   Margin="0,0,0,5"/>
+                   Margin="0,0,0,5"
+                   Foreground="{DynamicResource PrimaryTextBrush}"/>
 
         <DataGrid x:Name="StockItemsDataGrid"
                   Grid.Row="2"
@@ -27,9 +29,28 @@
                   IsReadOnly="True"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
-                  Margin="0"
                   HeadersVisibility="Column"
-                  SelectionMode="Single">
+                  SelectionMode="Single"
+                  Background="{DynamicResource DataGridBackgroundBrush}"
+                  Foreground="{DynamicResource PrimaryTextBrush}"
+                  RowBackground="{DynamicResource DataGridRowBackgroundBrush}"
+                  AlternatingRowBackground="{DynamicResource DataGridAlternateRowBrush}"
+                  GridLinesVisibility="All"
+                  HorizontalGridLinesBrush="{DynamicResource DataGridGridLineBrush}"
+                  VerticalGridLinesBrush="{DynamicResource DataGridGridLineBrush}"
+                  BorderBrush="{DynamicResource BorderBrush}"
+                  BorderThickness="1">
+
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="{DynamicResource DataGridHeaderBackgroundBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource DataGridHeaderTextBrush}"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource DataGridGridLineBrush}"/>
+                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                    <Setter Property="Padding" Value="8,5"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Item Code" Binding="{Binding ItemCode}" Width="150"/>
