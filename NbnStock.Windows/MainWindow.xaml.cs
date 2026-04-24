@@ -29,14 +29,16 @@ namespace NbnStock.Windows
 
         private void BtnReceiveStock_Click(object sender, RoutedEventArgs e)
         {
-            var selectedItem = StockItemsDataGrid.SelectedItem as StockItem;
-            if (selectedItem == null)
+            var bulkWindow = new BulkReceiveWindow
             {
-                MessageBox.Show("Please select an item from the list first.", "No Item Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+                Owner = this
+            };
 
-            MessageBox.Show($"Ready to receive stock for: {selectedItem.Name}\nCurrently On Hand: {selectedItem.Quantity}", "Receive Stock");
+            if (bulkWindow.ShowDialog() == true)
+            {
+                // Refresh the main grid once the batch is committed
+                LoadStockItems();
+            }
         }
 
         private void BtnConsumeStock_Click(object sender, RoutedEventArgs e)
