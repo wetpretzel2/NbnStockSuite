@@ -10,7 +10,17 @@
     <Title>NBNStockPortal</Title>
     <Product>NBNStockPortal</Product>
     <Description>NBN Stock Portal is a comprehensive inventory management tool designed for field contractors. It features real-time tracking of serialised hardware, bulk consumable logging, automated E-Waste pipeline management, and monthly CSV reporting.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <ApplicationIcon>nbn-4.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="nbn-4.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="nbn-4.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Views\" />
@@ -18,6 +28,32 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NbnStock.Core\NbnStock.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="nbn-4.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 	<Target Name="CopyReadmeToPublish" AfterTargets="Publish">
 		<Copy SourceFiles="README.md" DestinationFolder="$(PublishDir)" />

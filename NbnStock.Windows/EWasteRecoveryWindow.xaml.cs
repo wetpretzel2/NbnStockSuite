@@ -1,8 +1,6 @@
 ﻿using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Data.Sqlite;
-using NbnStock.Core.Models;
+﻿using Microsoft.Data.Sqlite;
 using NbnStock.Core.Data;
+using NbnStock.Core.Models;
 
 namespace NbnStock.Core.Repositories
 {

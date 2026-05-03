@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NbnStock.Core.Models
+﻿namespace NbnStock.Core.Models
 {
     public class PendingStockEntry
     {

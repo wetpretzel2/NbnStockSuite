@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NbnStock.Core.Models
+﻿namespace NbnStock.Core.Models
 {
     public class StockItem
     {
@@ -15,6 +13,6 @@ namespace NbnStock.Core.Models
         public bool IsSerialised { get; set; }
         public string Notes { get; set; }
         public DateTime LastUpdatedUtc { get; set; } = DateTime.UtcNow;
-        
+
     }
 }

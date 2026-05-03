@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Microsoft.Data.Sqlite;
 using NbnStock.Core.Data;
 using NbnStock.Core.Models;
-using Microsoft.Data.Sqlite;
 
 namespace NbnStock.Core.Repositories
 {
@@ -40,7 +39,7 @@ namespace NbnStock.Core.Repositories
 
                 }
             }
-            
+
         }
         public List<StockItem> GetAllStockItems()
         {
