@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyName>NBNStockPortal</AssemblyName>
+    <Title>NBNStockPortal</Title>
+    <Product>NBNStockPortal</Product>
+    <Description>NBN Stock Portal is a comprehensive inventory management tool designed for field contractors. It features real-time tracking of serialised hardware, bulk consumable logging, automated E-Waste pipeline management, and monthly CSV reporting.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,5 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NbnStock.Core\NbnStock.Core.csproj" />
   </ItemGroup>
-
+	<Target Name="CopyReadmeToPublish" AfterTargets="Publish">
+		<Copy SourceFiles="README.md" DestinationFolder="$(PublishDir)" />
+	</Target>
 </Project>
