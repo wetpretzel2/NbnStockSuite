@@ -51,6 +51,11 @@
                     Width="120" Height="30" 
                     Margin="20,0,0,0"
                     Click="BtnEWasteDashboard_Click"/>
+            <Button x:Name="BtnExportReport" 
+                Content="Export Monthly Report" 
+                Width="150" Height="30" 
+                Margin="20,0,0,0"
+                Click="BtnExportReport_Click"/>
         </StackPanel>
 
         <DataGrid x:Name="StockItemsDataGrid"
