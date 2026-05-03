@@ -1,0 +1,62 @@
+﻿<Window x:Class="NbnStock.Windows.BulkConsumeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="End of Day - Bulk Consume" Height="600" Width="900"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="End of Day Consumption" FontSize="22" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10" Margin="0,0,0,15" Background="{DynamicResource ControlBackgroundBrush}">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                <TextBlock Text="Select Item:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <ComboBox x:Name="ComboItems" Width="250" Height="30" DisplayMemberPath="Name" SelectionChanged="ComboItems_SelectionChanged"/>
+
+                <TextBlock x:Name="TxtAvailable" Text="(0 Available)" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}"/>
+
+                <StackPanel x:Name="PanelConsumable" Orientation="Horizontal" Visibility="Collapsed" Margin="20,0,0,0">
+                    <TextBlock Text="Qty Used:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBox x:Name="InputQuantity" Width="80" Height="30" Padding="5" KeyDown="InputQuantity_KeyDown"/>
+                    <Button Content="Add to List" Width="100" Height="30" Margin="10,0,0,0" Click="BtnAddConsumable_Click"/>
+                </StackPanel>
+
+                <StackPanel x:Name="PanelSerialised" Orientation="Horizontal" Visibility="Collapsed" Margin="20,0,0,0">
+                    <TextBlock Text="Scan Installed Unit:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold" Foreground="#4DA6FF"/>
+                    <TextBox x:Name="InputScanner" Width="200" Height="30" Padding="5" KeyDown="InputScanner_KeyDown"/>
+                </StackPanel>
+
+            </StackPanel>
+        </Border>
+
+        <DataGrid x:Name="BatchDataGrid" Grid.Row="2"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  Background="{DynamicResource DataGridBackgroundBrush}"
+                  Foreground="{DynamicResource PrimaryTextBrush}"
+                  RowBackground="{DynamicResource DataGridRowBackgroundBrush}"
+                  AlternatingRowBackground="{DynamicResource DataGridAlternateRowBrush}"
+                  GridLinesVisibility="All" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Item Code" Binding="{Binding ItemCode}" Width="120"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80"/>
+                <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="250"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <TextBlock x:Name="TxtTotalCount" Text="Total Entries: 0" VerticalAlignment="Center" Margin="0,0,20,0" FontWeight="Bold"/>
+            <Button Content="Clear List" Width="100" Height="30" Margin="0,0,10,0" Click="BtnClear_Click"/>
+            <Button Content="Commit Consumption" Width="150" Height="30" Click="BtnCommit_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

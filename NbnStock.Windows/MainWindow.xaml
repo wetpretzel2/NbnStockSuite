@@ -41,6 +41,11 @@
                     Width="100" Height="30" 
                     Margin="20,0,0,0"
                     Click="BtnRefresh_Click"/>
+            <Button x:Name="BtnAddCustomItem" 
+                    Content="Add Custom Item" 
+                    Width="120" Height="30" 
+                    Margin="20,0,0,0"
+                    Click="BtnAddCustomItem_Click"/>
         </StackPanel>
 
         <DataGrid x:Name="StockItemsDataGrid"

@@ -1,6 +1,7 @@
 ﻿using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -13,12 +14,18 @@ namespace NbnStock.Windows
         private readonly StockRepository _stockRepo;
         private readonly SerialisedUnitRepository _serialisedRepo;
 
+        // This holds the queue of items you have scanned
+        public ObservableCollection<SerialisedUnit> ScannedQueue { get; set; }
+
         public ConsumeStockWindow(StockItem item)
         {
             InitializeComponent();
             _stockItem = item;
             _stockRepo = new StockRepository();
             _serialisedRepo = new SerialisedUnitRepository();
+            ScannedQueue = new ObservableCollection<SerialisedUnit>();
+
+            ListScannedSerials.ItemsSource = ScannedQueue;
 
             SetupUI();
         }
@@ -32,7 +39,7 @@ namespace NbnStock.Windows
             {
                 PanelConsumable.Visibility = Visibility.Collapsed;
                 PanelSerialised.Visibility = Visibility.Visible;
-                LoadAvailableSerials();
+                InputScanner.Focus(); // Auto-focus the scanner ready for the first beep
             }
             else
             {
@@ -42,19 +49,47 @@ namespace NbnStock.Windows
             }
         }
 
-        private void LoadAvailableSerials()
+        private void InputScanner_KeyDown(object sender, KeyEventArgs e)
         {
-            // Get all OnHand units, then filter for this specific stock item type
-            var availableUnits = _serialisedRepo.GetSerialisedUnitsByStatus(UnitStatus.OnHand)
-                                                .Where(u => u.StockItemId == _stockItem.Id)
-                                                .ToList();
-
-            ListAvailableSerials.ItemsSource = availableUnits;
-
-            if (availableUnits.Count == 0)
+            if (e.Key == Key.Return || e.Key == Key.Enter)
             {
-                BtnConfirm.IsEnabled = false;
-                MessageBox.Show("There are no available serial numbers on hand for this item.", "No Stock", MessageBoxButton.OK, MessageBoxImage.Information);
+                string serial = InputScanner.Text.Trim();
+                if (string.IsNullOrEmpty(serial)) return;
+
+                // 1. Prevent double-scanning the same unit in this session
+                if (ScannedQueue.Any(u => u.SerialNumber.Equals(serial, StringComparison.OrdinalIgnoreCase)))
+                {
+                    MessageBox.Show("You have already scanned this serial number into the current queue.", "Duplicate Scan", MessageBoxButton.OK, MessageBoxImage.Information);
+                    InputScanner.Clear();
+                    return;
+                }
+
+                // 2. Look up the serial in the database
+                var unit = _serialisedRepo.GetSerialisedUnitBySerial(serial);
+
+                // 3. Validation checks
+                if (unit == null)
+                {
+                    MessageBox.Show("This serial number was not found in the database.", "Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else if (unit.StockItemId != _stockItem.Id)
+                {
+                    MessageBox.Show($"This serial belongs to a different item type. You are currently consuming: {_stockItem.Name}.", "Item Mismatch", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else if (unit.Status != UnitStatus.OnHand)
+                {
+                    MessageBox.Show($"Cannot consume this unit. Its current status is: {unit.Status}", "Invalid Status", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else
+                {
+                    // 4. Validation passed! Add to our consumption queue
+                    ScannedQueue.Add(unit);
+                    TxtScanCount.Text = $"Scanned units ready to consume: {ScannedQueue.Count}";
+                }
+
+                // Clear the box instantly for the next rapid scan
+                InputScanner.Clear();
+                InputScanner.Focus();
             }
         }
 
@@ -77,22 +112,20 @@ namespace NbnStock.Windows
             {
                 if (_stockItem.IsSerialised)
                 {
-                    var selectedUnits = ListAvailableSerials.SelectedItems.Cast<SerialisedUnit>().ToList();
-
-                    if (selectedUnits.Count == 0)
+                    if (ScannedQueue.Count == 0)
                     {
-                        MessageBox.Show("Please select at least one serial number to consume.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show("Please scan at least one serial number to consume.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
 
-                    // Update each selected serialised unit to 'Installed' status
-                    foreach (var unit in selectedUnits)
+                    // Update each scanned unit to 'Installed' status
+                    foreach (var unit in ScannedQueue)
                     {
                         _serialisedRepo.MarkUnitInstalled(unit.SerialNumber);
                     }
 
-                    // Also deduct from the master quantity pool for quick reference
-                    _stockRepo.ConsumeStock(_stockItem.Id, selectedUnits.Count);
+                    // Deduct the total amount from the master quantity pool
+                    _stockRepo.ConsumeStock(_stockItem.Id, ScannedQueue.Count);
                 }
                 else
                 {

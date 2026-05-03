@@ -64,21 +64,27 @@ namespace NbnStock.Windows
 
         private void BtnConsumeStock_Click(object sender, RoutedEventArgs e)
         {
-            var selectedItem = StockItemsDataGrid.SelectedItem as StockItem;
-            if (selectedItem == null)
-            {
-                MessageBox.Show("Please select an item from the list first.", "No Item Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var consumeWindow = new ConsumeStockWindow(selectedItem)
+            var bulkConsumeWindow = new BulkConsumeWindow
             {
                 Owner = this
             };
 
-            if (consumeWindow.ShowDialog() == true)
+            if (bulkConsumeWindow.ShowDialog() == true)
             {
-                // Refresh the main grid so the new quantities reflect immediately
+                // Refresh the main grid once the daily batch is committed
+                LoadStockItems();
+            }
+        }
+        private void BtnAddCustomItem_Click(object sender, RoutedEventArgs e)
+        {
+            var addWindow = new AddCustomItemWindow
+            {
+                Owner = this
+            };
+
+            if (addWindow.ShowDialog() == true)
+            {
+                // Refresh the main grid so the newly created item appears
                 LoadStockItems();
             }
         }
