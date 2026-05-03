@@ -88,5 +88,14 @@ namespace NbnStock.Windows
                 LoadStockItems();
             }
         }
+        private void BtnEWasteDashboard_Click(object sender, RoutedEventArgs e)
+        {
+            var ewasteDashboard = new EWasteDashboardWindow
+            {
+                Owner = this
+            };
+
+            ewasteDashboard.ShowDialog();
+        }
     }
 }

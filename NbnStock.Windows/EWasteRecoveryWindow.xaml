@@ -1,0 +1,58 @@
+﻿<Window x:Class="NbnStock.Windows.EWasteRecoveryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="E-Waste Recovery Scanner" Height="500" Width="650"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="E-Waste Recovery" FontSize="22" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10" Margin="0,0,0,15" Background="{DynamicResource ControlBackgroundBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Scan Recovered Unit:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold" Foreground="#4DA6FF"/>
+                    <TextBox x:Name="InputScanner" Width="250" Height="30" Padding="5" KeyDown="InputScanner_KeyDown"/>
+                    <TextBlock Text="(Press Enter or Scan)" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <TextBlock Text="If scanning a legacy unit not in DB, assign it as:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    <ComboBox x:Name="ComboLegacyType" Width="200" Height="25" DisplayMemberPath="Name"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <DataGrid x:Name="BatchDataGrid" Grid.Row="2"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  Background="{DynamicResource DataGridBackgroundBrush}"
+                  Foreground="{DynamicResource PrimaryTextBrush}"
+                  RowBackground="{DynamicResource DataGridRowBackgroundBrush}"
+                  AlternatingRowBackground="{DynamicResource DataGridAlternateRowBrush}"
+                  GridLinesVisibility="All" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Detection Type" Binding="{Binding Notes}" Width="150" FontWeight="SemiBold"/>
+                <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <TextBlock x:Name="TxtTotalCount" Text="Total Units: 0" VerticalAlignment="Center" Margin="0,0,20,0" FontWeight="Bold"/>
+            <Button Content="Clear Batch" Width="100" Height="30" Margin="0,0,10,0" Click="BtnClear_Click"/>
+            <Button Content="Commit to E-Waste" Width="140" Height="30" Click="BtnCommit_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -46,6 +46,11 @@
                     Width="120" Height="30" 
                     Margin="20,0,0,0"
                     Click="BtnAddCustomItem_Click"/>
+            <Button x:Name="BtnEWasteDashboard" 
+                    Content="Manage E-Waste" 
+                    Width="120" Height="30" 
+                    Margin="20,0,0,0"
+                    Click="BtnEWasteDashboard_Click"/>
         </StackPanel>
 
         <DataGrid x:Name="StockItemsDataGrid"
