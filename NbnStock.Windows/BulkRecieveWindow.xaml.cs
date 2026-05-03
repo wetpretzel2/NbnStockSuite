@@ -1,5 +1,6 @@
 ﻿using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -11,13 +12,15 @@ namespace NbnStock.Windows
     public partial class BulkReceiveWindow : Window
     {
         private readonly StockRepository _stockRepo;
-        // ObservableCollection automatically updates the DataGrid when items are added
+        private readonly SerialisedUnitRepository _serialisedRepo; // Added this!
+
         public ObservableCollection<PendingStockEntry> PendingBatch { get; set; }
 
         public BulkReceiveWindow()
         {
             InitializeComponent();
             _stockRepo = new StockRepository();
+            _serialisedRepo = new SerialisedUnitRepository(); // Initialised this!
             PendingBatch = new ObservableCollection<PendingStockEntry>();
 
             BatchDataGrid.ItemsSource = PendingBatch;
@@ -28,25 +31,23 @@ namespace NbnStock.Windows
         {
             var rawItems = _stockRepo.GetAllStockItems();
 
-            // Sort the list logically before giving it to the dropdown
             var sortedItems = rawItems
-                .OrderByDescending(i => i.IsSerialised)          // 1. Serialised units always at the very top
-                .ThenBy(i => i.SupplyType.ToString() == "TechSupplied" ? 1 : 0) // 2. Push all Tech Supplied to the bottom
-                .ThenBy(i => GetCategorySortWeight(i.Category))  // 3. Sort NBN stuff by Mounts, Cables, Wallplates
-                .ThenBy(i => i.Name)                             // 4. Alphabetical within those groups
+                .OrderByDescending(i => i.IsSerialised)
+                .ThenBy(i => i.SupplyType.ToString() == "TechSupplied" ? 1 : 0)
+                .ThenBy(i => GetCategorySortWeight(i.Category))
+                .ThenBy(i => i.Name)
                 .ToList();
 
             ComboItems.ItemsSource = sortedItems;
         }
 
-        // Helper method to rank categories
         private int GetCategorySortWeight(string category)
         {
             switch (category?.ToLower())
             {
                 case "mounts": return 1;
                 case "cabling": return 2;
-                case "hardware": return 3; // Wallplates (ODU/IDU are hardware too, but they are caught by IsSerialised first)
+                case "hardware": return 3;
                 default: return 4;
             }
         }
@@ -60,7 +61,6 @@ namespace NbnStock.Windows
             {
                 PanelConsumable.Visibility = Visibility.Collapsed;
                 PanelSerialised.Visibility = Visibility.Visible;
-                // Auto-focus the scanner box so you don't have to click it
                 InputScanner.Focus();
             }
             else
@@ -71,7 +71,6 @@ namespace NbnStock.Windows
             }
         }
 
-        // --- SCANNER LOGIC ---
         private void InputScanner_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Return || e.Key == Key.Enter)
@@ -81,7 +80,6 @@ namespace NbnStock.Windows
 
                 if (selectedItem != null && !string.IsNullOrEmpty(serial))
                 {
-                    // Prevent duplicate scans in the same batch
                     if (PendingBatch.Any(p => p.SerialNumber == serial))
                     {
                         MessageBox.Show("This serial is already in your current batch!", "Duplicate Scan", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -91,6 +89,7 @@ namespace NbnStock.Windows
 
                     PendingBatch.Add(new PendingStockEntry
                     {
+                        StockItemId = selectedItem.Id, // Saving the DB Id!
                         ItemCode = selectedItem.ItemCode,
                         Name = selectedItem.Name,
                         IsSerialised = true,
@@ -100,16 +99,12 @@ namespace NbnStock.Windows
 
                     UpdateTotalCount();
                 }
-
-                // Clear the box instantly for the next scan
                 InputScanner.Clear();
             }
         }
 
-        // --- CONSUMABLE LOGIC ---
         private void InputQuantity_KeyDown(object sender, KeyEventArgs e)
         {
-            // Allow pressing Enter instead of clicking the Add button
             if (e.Key == Key.Return || e.Key == Key.Enter)
             {
                 BtnAddConsumable_Click(sender, e);
@@ -123,6 +118,7 @@ namespace NbnStock.Windows
             {
                 PendingBatch.Add(new PendingStockEntry
                 {
+                    StockItemId = selectedItem.Id, // Saving the DB Id!
                     ItemCode = selectedItem.ItemCode,
                     Name = selectedItem.Name,
                     IsSerialised = false,
@@ -138,7 +134,6 @@ namespace NbnStock.Windows
         private void UpdateTotalCount()
         {
             TxtTotalCount.Text = $"Total Items in Batch: {PendingBatch.Count}";
-            // Automatically scroll the grid to the newest item at the bottom
             if (PendingBatch.Count > 0)
             {
                 BatchDataGrid.ScrollIntoView(PendingBatch.Last());
@@ -151,14 +146,36 @@ namespace NbnStock.Windows
             UpdateTotalCount();
         }
 
+        // THIS IS THE FIX! We are actually talking to SQLite now.
         private void BtnCommit_Click(object sender, RoutedEventArgs e)
         {
             if (PendingBatch.Count == 0) return;
 
-            // Here we would loop through PendingBatch and call _stockRepo and SerialisedUnitRepository
-            // For now, we will just close the window and pretend it saved
-            MessageBox.Show($"Successfully processed {PendingBatch.Count} batch entries.", "Batch Complete");
-            this.DialogResult = true;
+            try
+            {
+                foreach (var entry in PendingBatch)
+                {
+                    if (entry.IsSerialised)
+                    {
+                        // 1. Add the specific serial number to the Serialised table
+                        _serialisedRepo.ReceiveSerialisedUnit(entry.StockItemId, entry.SerialNumber);
+                        // 2. Add +1 to the master quantity of that item type
+                        _stockRepo.ReceiveStock(entry.StockItemId, entry.Quantity);
+                    }
+                    else
+                    {
+                        // Bulk item, just add the quantity to the master table
+                        _stockRepo.ReceiveStock(entry.StockItemId, entry.Quantity);
+                    }
+                }
+
+                MessageBox.Show($"Successfully committed {PendingBatch.Count} entries to inventory.", "Batch Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                this.DialogResult = true; // Closes window and tells MainWindow to refresh
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Database Error during commit: {ex.Message}\n\nCheck if you scanned a duplicate serial number that is already in the database.", "Commit Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

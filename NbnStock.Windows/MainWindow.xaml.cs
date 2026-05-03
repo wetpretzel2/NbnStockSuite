@@ -71,7 +71,16 @@ namespace NbnStock.Windows
                 return;
             }
 
-            MessageBox.Show($"Ready to consume stock for: {selectedItem.Name}\nCurrently On Hand: {selectedItem.Quantity}", "Consume Stock");
+            var consumeWindow = new ConsumeStockWindow(selectedItem)
+            {
+                Owner = this
+            };
+
+            if (consumeWindow.ShowDialog() == true)
+            {
+                // Refresh the main grid so the new quantities reflect immediately
+                LoadStockItems();
+            }
         }
     }
 }
