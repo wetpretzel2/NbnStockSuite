@@ -36,16 +36,30 @@
             </Grid>
         </Border>
 
-        <DataGrid x:Name="BatchDataGrid" Grid.Row="2"
-                  AutoGenerateColumns="False" IsReadOnly="True"
-                  Background="{DynamicResource DataGridBackgroundBrush}"
-                  Foreground="{DynamicResource PrimaryTextBrush}"
-                  RowBackground="{DynamicResource DataGridRowBackgroundBrush}"
-                  AlternatingRowBackground="{DynamicResource DataGridAlternateRowBrush}"
-                  GridLinesVisibility="All" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+        <DataGrid x:Name="BatchDataGrid" 
+          AutoGenerateColumns="False" 
+          IsReadOnly="True" 
+          Background="#1E1E1E" 
+          RowBackground="#1E1E1E" 
+          Foreground="White"
+          GridLinesVisibility="None"
+          BorderThickness="1"
+          BorderBrush="#333333">
+
+            <DataGrid.Resources>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#2D2D2D" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="Padding" Value="10,5" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="BorderThickness" Value="0,0,1,1" />
+                    <Setter Property="BorderBrush" Value="#444444" />
+                </Style>
+            </DataGrid.Resources>
+
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Detection Type" Binding="{Binding Notes}" Width="150" FontWeight="SemiBold"/>
-                <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="*"/>
+                <DataGridTextColumn Header="Detection Type" Binding="{Binding DetectionType}" Width="*" />
+                <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="2*" />
             </DataGrid.Columns>
         </DataGrid>
 
