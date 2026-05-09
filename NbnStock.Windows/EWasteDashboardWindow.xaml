@@ -50,6 +50,7 @@
             <Button Content="Log New E-Waste" Width="140" Height="30" Margin="0,0,20,0" Click="BtnLogNew_Click"/>
             <Button Content="Refresh List" Width="100" Height="30" Margin="0,0,20,0" Click="BtnRefresh_Click"/>
             <Button x:Name="BtnProgressStage" Content="Progress Selected to Next Stage" Width="220" Height="30" Click="BtnProgressStage_Click"/>
+            <Button x:Name="BtnSelectAll" Content="Select All" Width="100" Height="30" Margin="0,0,20,0" Click="BtnSelectAll_Click"/>
         </StackPanel>
     </Grid>
 </Window>

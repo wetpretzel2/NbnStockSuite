@@ -87,5 +87,13 @@ namespace NbnStock.Windows
                 MessageBox.Show($"Failed to update E-Waste pipeline: {ex.Message}", "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            if (EwasteDataGrid.Items.Count > 0)
+            {
+                EwasteDataGrid.SelectAll();
+                EwasteDataGrid.Focus(); // Keeps the grid active so you clearly see the highlight
+            }
+        }
     }
 }
