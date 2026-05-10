@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <None Remove="nbn-4.ico" />
+    <None Remove="README.md" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +29,10 @@
 
   <ItemGroup>
     <Resource Include="nbn-4.ico" />
+    <Resource Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
@@ -43,13 +48,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
   </ItemGroup>
 	<Target Name="CopyReadmeToPublish" AfterTargets="Publish">
 		<Copy SourceFiles="README.md" DestinationFolder="$(PublishDir)" />
