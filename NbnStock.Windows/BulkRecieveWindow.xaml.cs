@@ -76,6 +76,12 @@ namespace NbnStock.Windows
                 var selectedItem = ComboItems.SelectedItem as StockItem;
                 string serial = InputScanner.Text.Trim();
 
+                // NEW: Strip the leading 'S'
+                if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    serial = serial.Substring(1);
+                }
+
                 if (selectedItem != null && !string.IsNullOrEmpty(serial))
                 {
                     if (PendingBatch.Any(p => p.SerialNumber == serial))
@@ -87,7 +93,7 @@ namespace NbnStock.Windows
 
                     PendingBatch.Add(new PendingStockEntry
                     {
-                        StockItemId = selectedItem.Id, // Saving the DB Id!
+                        StockItemId = selectedItem.Id,
                         ItemCode = selectedItem.ItemCode,
                         Name = selectedItem.Name,
                         IsSerialised = true,

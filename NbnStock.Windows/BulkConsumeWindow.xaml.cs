@@ -67,6 +67,12 @@ namespace NbnStock.Windows
                 var selectedItem = ComboItems.SelectedItem as StockItem;
                 string serial = InputScanner.Text.Trim();
 
+                // NEW: Strip the leading 'S'
+                if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    serial = serial.Substring(1);
+                }
+
                 if (selectedItem != null && !string.IsNullOrEmpty(serial))
                 {
                     // 1. Prevent duplicate scans in the queue
