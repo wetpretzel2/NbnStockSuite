@@ -15,11 +15,17 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
             <TextBlock Text="Bulk E-Waste Scanning" FontSize="22" FontWeight="Bold" Margin="0,0,0,5"/>
-            <TextBlock Text="Scan units below to stage them for e-waste recovery." Foreground="{DynamicResource ResourceKey=SecondaryTextBrush}" Margin="0,0,0,15"/>
+            <TextBlock Text="Scan units below to stage them for e-waste recovery."
+                       Foreground="{DynamicResource ResourceKey=SecondaryTextBrush}" Margin="0,0,0,15"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Legacy Type (If not in DB):" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold"/>
+                <ComboBox x:Name="ComboLegacyType" Width="200" Height="30" DisplayMemberPath="Name" />
+            </StackPanel>
 
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Scan Barcode:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold"/>
-                <TextBox x:Name="TxtScanInput" Width="350" Height="30" FontSize="16" VerticalContentAlignment="Center" Padding="5,0"/>
+                <TextBox x:Name="InputScanner" Width="350" Height="30" FontSize="16" VerticalContentAlignment="Center" Padding="5,0" KeyDown="InputScanner_KeyDown"/>
             </StackPanel>
         </StackPanel>
 
@@ -49,7 +55,7 @@
             </DataGrid.ColumnHeaderStyle>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Detection Type" Binding="{Binding DetectionType}" Width="*" />
+                <DataGridTextColumn Header="Detection Type" Binding="{Binding Notes}" Width="*" />
                 <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="2*" />
             </DataGrid.Columns>
         </DataGrid>

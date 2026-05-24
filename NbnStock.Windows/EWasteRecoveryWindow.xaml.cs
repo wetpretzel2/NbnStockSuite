@@ -1,6 +1,9 @@
 ﻿using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -40,7 +43,9 @@ namespace NbnStock.Windows
         {
             if (e.Key == Key.Return || e.Key == Key.Enter)
             {
-                string serial = InputScanner.Text.Trim();
+                // V1 Scanner Fix: Automatically strips the manufacturer 'S' prefix
+                string serial = InputScanner.Text.TrimStart('s', 'S').Trim();
+
                 if (string.IsNullOrEmpty(serial)) return;
 
                 // Prevent scanning the same unit twice in one session

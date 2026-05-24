@@ -1,6 +1,8 @@
 ﻿using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 using System.Windows;
+using System;
+using System.Linq;
 
 namespace NbnStock.Windows
 {
