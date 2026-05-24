@@ -6,7 +6,7 @@
         mc:Ignorable="d"
         Title="NbnStockSuite"
         Height="500"
-        Width="900"
+        Width="1000"
         Background="{DynamicResource WindowBackgroundBrush}">
 
     <Grid Margin="10">
@@ -56,6 +56,11 @@
                 Width="150" Height="30" 
                 Margin="20,0,0,0"
                 Click="BtnExportReport_Click"/>
+            <Button x:Name="BtnSyncJobCards" 
+                    Content="Sync Job Cards" 
+                    Width="120" Height="30" 
+                    Margin="20,0,0,0"
+                    Click="BtnSyncJobCards_Click"/>
         </StackPanel>
 
         <DataGrid x:Name="StockItemsDataGrid"
