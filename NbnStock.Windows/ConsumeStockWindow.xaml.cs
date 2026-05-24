@@ -54,6 +54,12 @@ namespace NbnStock.Windows
                 string serial = InputScanner.Text.Trim();
                 if (string.IsNullOrEmpty(serial)) return;
 
+                // NEW: Strip the leading 'S'
+                if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    serial = serial.Substring(1);
+                }
+
                 // 1. Prevent double-scanning the same unit in this session
                 if (ScannedQueue.Any(u => u.SerialNumber.Equals(serial, StringComparison.OrdinalIgnoreCase)))
                 {
