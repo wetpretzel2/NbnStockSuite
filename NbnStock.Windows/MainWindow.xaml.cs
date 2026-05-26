@@ -230,5 +230,14 @@ namespace NbnStock.Windows
                 BtnSyncJobCards.Content = "Sync Job Cards";
             }
         }
+        private void BtnEmailSettings_Click(object sender, RoutedEventArgs e)
+        {
+            var settingsWindow = new EmailSettingsWindow
+            {
+                Owner = this
+            };
+
+            settingsWindow.ShowDialog();
+        }
     }
 }

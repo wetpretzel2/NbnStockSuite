@@ -61,6 +61,17 @@
                     Width="120" Height="30" 
                     Margin="20,0,0,0"
                     Click="BtnSyncJobCards_Click"/>
+            <Button x:Name="BtnSyncJobCards" 
+                Content="Sync Job Cards" 
+                Width="120" Height="30" 
+                Margin="20,0,0,0"
+                Click="BtnSyncJobCards_Click"/>
+
+            <Button x:Name="BtnEmailSettings" 
+                Content="⚙️ Settings" 
+                Width="90" Height="30" 
+                Margin="10,0,0,0"
+                Click="BtnEmailSettings_Click"/>
         </StackPanel>
 
         <DataGrid x:Name="StockItemsDataGrid"
