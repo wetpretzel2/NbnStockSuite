@@ -6,7 +6,7 @@
         mc:Ignorable="d"
         Title="NbnStockSuite"
         Height="500"
-        Width="1000"
+        Width="1100"
         Background="{DynamicResource WindowBackgroundBrush}">
 
     <Grid Margin="10">
@@ -61,11 +61,7 @@
                     Width="120" Height="30" 
                     Margin="20,0,0,0"
                     Click="BtnSyncJobCards_Click"/>
-            <Button x:Name="BtnSyncJobCards" 
-                Content="Sync Job Cards" 
-                Width="120" Height="30" 
-                Margin="20,0,0,0"
-                Click="BtnSyncJobCards_Click"/>
+           
 
             <Button x:Name="BtnEmailSettings" 
                 Content="⚙️ Settings" 
