@@ -14,7 +14,7 @@ namespace NbnStock.Windows
         private string _currentAccessToken = string.Empty;
 
         
-        private const string ClientId = "688d358-a23c-4142-98ed-783ee491edb6";
+        private const string ClientId = "3688d358-a23c-4142-98ed-783ee491edb6";
         private const string TenantId = "common";
 
         public EmailSettingsWindow()
