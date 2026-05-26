@@ -97,6 +97,7 @@ namespace NbnStock.Windows
             {
                 var pca = PublicClientApplicationBuilder.Create(ClientId)
                     .WithAuthority(AzureCloudInstance.AzurePublic, TenantId)
+                    .WithDefaultRedirectUri()
                     .Build();
 
                 // The exact scope required for Exchange Online IMAP access
