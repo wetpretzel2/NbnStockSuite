@@ -173,7 +173,10 @@ namespace NbnStock.Windows
                     Port = port,
                     UseSsl = ChkUseSsl.IsChecked ?? true,
                     Username = TxtEmail.Text.Trim(),
-                    Password = TxtPassword.Password.Trim(),
+
+                    // THE FIX: If the password box is empty, give the Vault a dummy string so it doesn't crash
+                    Password = string.IsNullOrWhiteSpace(TxtPassword.Password) ? "M365_OAUTH_TOKEN" : TxtPassword.Password.Trim(),
+
                     AccessToken = _currentAccessToken
                 };
 
