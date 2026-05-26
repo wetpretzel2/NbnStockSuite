@@ -199,12 +199,40 @@ namespace NbnStock.Windows
             var vault = new WindowsCredentialVault();
             var config = ConfigManager.LoadEmailConfig(vault);
 
-            // If it's a new tech on a new machine, force them to set up their email first!
-            if (config == null || string.IsNullOrEmpty(config.Username) || string.IsNullOrEmpty(config.Password))
+            // 1. Validate if we have a basic setup at all
+            if (config == null || string.IsNullOrEmpty(config.Username))
             {
                 MessageBox.Show("You need to configure your email settings before syncing job cards.", "Settings Required", MessageBoxButton.OK, MessageBoxImage.Warning);
                 new EmailSettingsWindow { Owner = this }.ShowDialog();
                 return;
+            }
+
+            bool isM365 = config.ProviderType == EmailProvider.Microsoft365;
+
+            // 2. If it's legacy IMAP, ensure they have an App Password saved
+            if (!isM365 && string.IsNullOrEmpty(config.Password))
+            {
+                MessageBox.Show("You need to enter an App Password for your email before syncing.", "Password Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                new EmailSettingsWindow { Owner = this }.ShowDialog();
+                return;
+            }
+
+            // 3. If it's Microsoft 365, grab the fresh OAuth token silently from your cache
+            if (isM365)
+            {
+                var authWindow = new EmailSettingsWindow();
+                string activeToken = await authWindow.GetTokenAsync();
+
+                if (string.IsNullOrEmpty(activeToken))
+                {
+                    MessageBox.Show("Your Microsoft session has expired or is invalid. Please open Settings and Sign In again.", "Authentication Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    new EmailSettingsWindow { Owner = this }.ShowDialog();
+                    return;
+                }
+
+                // Inject the fresh token directly into the config object in memory.
+                // This ensures JobCardProcessor and EmailHookService use the active token!
+                config.AccessToken = activeToken;
             }
 
             BtnSyncJobCards.IsEnabled = false;
@@ -212,6 +240,7 @@ namespace NbnStock.Windows
 
             try
             {
+                // The processor now receives the config containing the fresh AccessToken
                 var processor = new JobCardProcessor(config);
                 var result = await processor.RunSyncAsync();
 
@@ -222,7 +251,8 @@ namespace NbnStock.Windows
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to sync job cards: {ex.Message}\n\nCheck your App Password and IMAP settings.", "Sync Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Generalized the error message so it applies to both legacy and modern auth
+                MessageBox.Show($"Failed to sync job cards: {ex.Message}\n\nCheck your authentication and network settings.", "Sync Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {

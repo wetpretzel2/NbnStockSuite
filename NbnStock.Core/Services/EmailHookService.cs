@@ -51,7 +51,7 @@ namespace NbnStock.Core.Services
             }
         }
 
-        public async Task<List<string>> DownloadNewJobCardsAsync()
+        public async Task<List<string>> DownloadNewJobCardsAsync(string freshAccessToken = null)
         {
             var downloadedFiles = new List<string>();
 
@@ -63,13 +63,16 @@ namespace NbnStock.Core.Services
                 // Determine authentication method based on the selected provider
                 if (_config.ProviderType == EmailProvider.Microsoft365 || _config.ProviderType == EmailProvider.GoogleWorkspace)
                 {
-                    // Modern OAuth2 Authentication
-                    if (string.IsNullOrEmpty(_config.AccessToken))
+                    // 1. Prioritize the fresh token passed from the UI over the saved config
+                    string tokenToUse = !string.IsNullOrEmpty(freshAccessToken) ? freshAccessToken : _config.AccessToken;
+
+                    if (string.IsNullOrEmpty(tokenToUse))
                     {
-                        throw new Exception("OAuth Access Token is missing. Please re-authenticate in Settings.");
+                        throw new Exception("OAuth Access Token is missing or expired. Please sign in via Settings.");
                     }
 
-                    var oauth2 = new SaslMechanismOAuth2(_config.Username, _config.AccessToken);
+                    // 2. Authenticate securely using the valid token
+                    var oauth2 = new SaslMechanismOAuth2(_config.Username, tokenToUse);
                     await client.AuthenticateAsync(oauth2);
                 }
                 else
