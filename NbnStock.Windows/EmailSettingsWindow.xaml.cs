@@ -2,6 +2,9 @@
 using NbnStock.Core.Services;
 using NbnStock.Windows.Services;
 using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -13,7 +16,10 @@ namespace NbnStock.Windows
         private readonly WindowsCredentialVault _vault = new WindowsCredentialVault();
         private string _currentAccessToken = string.Empty;
 
-        
+        private IPublicClientApplication _pca;
+        private readonly string[] _scopes = new string[] { "https://outlook.office.com/IMAP.AccessAsUser.All", "offline_access" };
+        private const string CacheFileName = "msal_cache.bin";
+
         private const string ClientId = "3688d358-a23c-4142-98ed-783ee491edb6";
         private const string TenantId = "common";
 
@@ -21,6 +27,56 @@ namespace NbnStock.Windows
         {
             InitializeComponent();
             LoadCurrentSettings();
+        }
+
+        private async Task InitializeAuth()
+        {
+            if (_pca != null) return;
+
+            _pca = PublicClientApplicationBuilder.Create(ClientId)
+                .WithAuthority(AzureCloudInstance.AzurePublic, TenantId)
+                .WithDefaultRedirectUri()
+                .Build();
+
+            var cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NbnStockSuite");
+            if (!Directory.Exists(cacheDir)) Directory.CreateDirectory(cacheDir);
+            var cacheFilePath = Path.Combine(cacheDir, CacheFileName);
+
+            // Wire up the token cache storage events correctly
+            _pca.UserTokenCache.SetBeforeAccess(args =>
+            {
+                if (File.Exists(cacheFilePath))
+                {
+                    try
+                    {
+                        byte[] encryptedData = File.ReadAllBytes(cacheFilePath);
+                        byte[] decryptedData = System.Security.Cryptography.ProtectedData.Unprotect(
+                            encryptedData,
+                            null,
+                            System.Security.Cryptography.DataProtectionScope.CurrentUser);
+
+                        args.TokenCache.DeserializeMsalV3(decryptedData);
+                    }
+                    catch (Exception)
+                    {
+                        File.Delete(cacheFilePath); // Wipe corrupted cache file safely if decryption fails
+                    }
+                }
+            });
+
+            _pca.UserTokenCache.SetAfterAccess(args =>
+            {
+                if (args.HasStateChanged)
+                {
+                    byte[] decryptedData = args.TokenCache.SerializeMsalV3();
+                    byte[] encryptedData = System.Security.Cryptography.ProtectedData.Protect(
+                        decryptedData,
+                        null,
+                        System.Security.Cryptography.DataProtectionScope.CurrentUser);
+
+                    File.WriteAllBytes(cacheFilePath, encryptedData);
+                }
+            });
         }
 
         private void LoadCurrentSettings()
@@ -35,86 +91,36 @@ namespace NbnStock.Windows
                 TxtPassword.Password = config.Password;
                 _currentAccessToken = config.AccessToken;
 
-                if (config.ProviderType == EmailProvider.Microsoft365)
-                {
-                    ComboProvider.SelectedIndex = 0;
-                    if (!string.IsNullOrEmpty(_currentAccessToken))
-                    {
-                        TxtTokenStatus.Text = "Token Loaded from Vault";
-                        TxtTokenStatus.Foreground = new SolidColorBrush(Colors.Green);
-                    }
-                }
-                else
-                {
-                    ComboProvider.SelectedIndex = 1;
-                }
-            }
-            else
-            {
-                ComboProvider.SelectedIndex = 0;
-            }
-        }
+                ComboProvider.SelectedIndex = config.ProviderType == EmailProvider.Microsoft365 ? 0 : 1;
 
-        private void ComboProvider_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ComboProvider.SelectedItem is ComboBoxItem selectedItem)
-            {
-                string tag = selectedItem.Tag.ToString();
-
-                if (tag == "Microsoft365")
+                if (config.ProviderType == EmailProvider.Microsoft365 && !string.IsNullOrEmpty(_currentAccessToken))
                 {
-                    PanelModernAuth.Visibility = Visibility.Visible;
-                    PanelBasicAuth.Visibility = Visibility.Collapsed;
-
-                    // Auto-fill Microsoft IMAP settings
-                    if (string.IsNullOrEmpty(TxtServer.Text) || TxtServer.Text.Contains("google") || TxtServer.Text.Contains("gmail"))
-                    {
-                        TxtServer.Text = "outlook.office365.com";
-                        TxtPort.Text = "993";
-                        ChkUseSsl.IsChecked = true;
-                    }
-                }
-                else
-                {
-                    PanelModernAuth.Visibility = Visibility.Collapsed;
-                    PanelBasicAuth.Visibility = Visibility.Visible;
+                    TxtTokenStatus.Text = "Token Loaded from Vault";
+                    TxtTokenStatus.Foreground = new SolidColorBrush(Colors.Green);
                 }
             }
         }
 
         private async void BtnSignInM365_Click(object sender, RoutedEventArgs e)
         {
-            if (ClientId.Contains("PASTE_YOUR"))
-            {
-                MessageBox.Show("Please paste your Client ID and Tenant ID into the code before attempting to sign in.", "Configuration Required", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            await InitializeAuth();
 
             BtnSignInM365.IsEnabled = false;
             BtnSignInM365.Content = "Authenticating...";
 
             try
             {
-                var pca = PublicClientApplicationBuilder.Create(ClientId)
-                    .WithAuthority(AzureCloudInstance.AzurePublic, TenantId)
-                    .WithDefaultRedirectUri()
-                    .Build();
-
-                // The exact scope required for Exchange Online IMAP access
-                string[] scopes = new string[] { "https://outlook.office.com/IMAP.AccessAsUser.All", "offline_access" };
-
-                // This triggers the official Microsoft login prompt
-                var result = await pca.AcquireTokenInteractive(scopes).ExecuteAsync();
+                var result = await _pca.AcquireTokenInteractive(_scopes).ExecuteAsync();
 
                 _currentAccessToken = result.AccessToken;
-                TxtEmail.Text = result.Account.Username; // Auto-populates your email address
+                TxtEmail.Text = result.Account.Username;
 
                 TxtTokenStatus.Text = "Successfully Authenticated!";
                 TxtTokenStatus.Foreground = new SolidColorBrush(Colors.Green);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to acquire token: {ex.Message}", "Authentication Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Authentication failed: {ex.Message}", "Authentication Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -123,21 +129,46 @@ namespace NbnStock.Windows
             }
         }
 
+        // Call this public method from your background Job Card / Email Hook Sync Service
+        public async Task<string> GetTokenAsync()
+        {
+            await InitializeAuth();
+            var accounts = await _pca.GetAccountsAsync();
+            try
+            {
+                var result = await _pca.AcquireTokenSilent(_scopes, accounts.FirstOrDefault()).ExecuteAsync();
+                return result.AccessToken;
+            }
+            catch (MsalUiRequiredException)
+            {
+                return null;
+            }
+        }
+
+        private void ComboProvider_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ComboProvider.SelectedItem is ComboBoxItem item)
+            {
+                bool isM365 = item.Tag?.ToString() == "Microsoft365";
+                PanelModernAuth.Visibility = isM365 ? Visibility.Visible : Visibility.Collapsed;
+                PanelBasicAuth.Visibility = isM365 ? Visibility.Collapsed : Visibility.Visible;
+
+                if (isM365 && (string.IsNullOrEmpty(TxtServer.Text) || TxtServer.Text.Contains("gmail")))
+                {
+                    TxtServer.Text = "outlook.office365.com";
+                    TxtPort.Text = "993";
+                    ChkUseSsl.IsChecked = true;
+                }
+            }
+        }
+
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(TxtPort.Text, out int port))
             {
-                var provider = ComboProvider.SelectedIndex == 0 ? EmailProvider.Microsoft365 : EmailProvider.CustomImap;
-
-                if (provider == EmailProvider.Microsoft365 && string.IsNullOrEmpty(_currentAccessToken))
-                {
-                    MessageBox.Show("Please click 'Sign in with Microsoft' to authenticate before saving.", "Authentication Required", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
                 var newConfig = new EmailConfig
                 {
-                    ProviderType = provider,
+                    ProviderType = ComboProvider.SelectedIndex == 0 ? EmailProvider.Microsoft365 : EmailProvider.CustomImap,
                     ImapServer = TxtServer.Text.Trim(),
                     Port = port,
                     UseSsl = ChkUseSsl.IsChecked ?? true,
@@ -156,9 +187,6 @@ namespace NbnStock.Windows
             }
         }
 
-        private void BtnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+        private void BtnCancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
     }
 }
