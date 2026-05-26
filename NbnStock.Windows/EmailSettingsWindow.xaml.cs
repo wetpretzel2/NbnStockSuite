@@ -13,9 +13,9 @@ namespace NbnStock.Windows
         private readonly WindowsCredentialVault _vault = new WindowsCredentialVault();
         private string _currentAccessToken = string.Empty;
 
-        // --- DROP YOUR AZURE IDs HERE BEFORE BUILDING ---
-        private const string ClientId = "PASTE_YOUR_CLIENT_ID_HERE";
-        private const string TenantId = "PASTE_YOUR_TENANT_ID_HERE";
+        
+        private const string ClientId = "688d358-a23c-4142-98ed-783ee491edb6";
+        private const string TenantId = "common";
 
         public EmailSettingsWindow()
         {
