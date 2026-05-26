@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using NbnStock.Core.Services;
+using NbnStock.Windows.Services;
 
 namespace NbnStock.Windows
 {
@@ -195,41 +196,36 @@ namespace NbnStock.Windows
         }
         private async void BtnSyncJobCards_Click(object sender, RoutedEventArgs e)
         {
-            // Temporarily disable the button and show loading text so it isn't clicked twice
+            var vault = new WindowsCredentialVault();
+            var config = ConfigManager.LoadEmailConfig(vault);
+
+            // If it's a new tech on a new machine, force them to set up their email first!
+            if (config == null || string.IsNullOrEmpty(config.Username) || string.IsNullOrEmpty(config.Password))
+            {
+                MessageBox.Show("You need to configure your email settings before syncing job cards.", "Settings Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                new EmailSettingsWindow { Owner = this }.ShowDialog();
+                return;
+            }
+
             BtnSyncJobCards.IsEnabled = false;
             BtnSyncJobCards.Content = "Syncing...";
 
             try
             {
-                // Configuration for IMAP connection. 
-                // Recommend setting up an "App Password" through your email provider for this!
-                var config = new EmailConfig
-                {
-                    ImapServer = "imap.gmail.com", // Adjust if you use O365 or another provider
-                    Port = 993,
-                    UseSsl = true,
-                    Username = "your_email@address.com", // Replace with your dispatch email
-                    Password = "your_app_password"       // Replace with the App Password
-                };
-
                 var processor = new JobCardProcessor(config);
-
-                // Await the background download and parsing task
                 var result = await processor.RunSyncAsync();
 
                 MessageBox.Show($"Sync Complete.\nProcessed: {result.Processed} jobs.\nErrors: {result.Errors}.",
                                 "Job Sync", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Instantly refresh the main dashboard to reflect the deducted stock and new E-waste!
-                LoadStockItems();
+                LoadStockItems(); // Refresh grids
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to sync job cards: {ex.Message}", "Sync Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to sync job cards: {ex.Message}\n\nCheck your App Password and IMAP settings.", "Sync Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                // Reset the button state
                 BtnSyncJobCards.IsEnabled = true;
                 BtnSyncJobCards.Content = "Sync Job Cards";
             }
