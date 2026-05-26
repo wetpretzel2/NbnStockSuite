@@ -97,7 +97,6 @@ namespace NbnStock.Windows
             {
                 var pca = PublicClientApplicationBuilder.Create(ClientId)
                     .WithAuthority(AzureCloudInstance.AzurePublic, TenantId)
-                    .WithRedirectUri("https://login.microsoftonline.com/common/oauth2/nativeclient") // Force this specific URL
                     .Build();
 
                 // The exact scope required for Exchange Online IMAP access
