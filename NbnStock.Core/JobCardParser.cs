@@ -86,25 +86,20 @@ namespace NbnStock.Core.Services
         /// </summary>
         private string ExtractValue(string text, string key)
         {
-            // PdfPig extracts raw text, so we just look for the Key and grab the text immediately after it.
+            // Allows for hidden newlines/spaces INSIDE the quotes on both the key and the value
+            // Matches: "Mount Type Installed\n","Flexi Tin\n"
+            string pattern = $"\"{Regex.Escape(key)}[\\r\\n\\s]*\"[\\r\\n\\s]*,[\\r\\n\\s]*\"([^\"]+)\"";
 
-            // 1. Try to find the value sitting on the exact same line (e.g. "Job Type: WNTD Install")
-            string sameLinePattern = $@"{Regex.Escape(key)}[\s:]+([^\r\n]+)";
-            var match = Regex.Match(text, sameLinePattern, RegexOptions.IgnoreCase);
+            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
             if (match.Success)
             {
+                // Group 1 will grab the value (e.g., "4528877\n"). Trim removes the lingering newline.
                 string val = match.Groups[1].Value.Trim();
-                if (!string.IsNullOrWhiteSpace(val)) return val;
-            }
-
-            // 2. Try to find the value if the PDF dropped it onto the very next line
-            string nextLinePattern = $@"{Regex.Escape(key)}[\r\n]+([^\r\n]+)";
-            match = Regex.Match(text, nextLinePattern, RegexOptions.IgnoreCase);
-
-            if (match.Success)
-            {
-                return match.Groups[1].Value.Trim();
+                if (!string.IsNullOrWhiteSpace(val))
+                {
+                    return val;
+                }
             }
 
             return null;
