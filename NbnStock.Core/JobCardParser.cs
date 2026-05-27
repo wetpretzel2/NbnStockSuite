@@ -86,20 +86,31 @@ namespace NbnStock.Core.Services
         /// </summary>
         private string ExtractValue(string text, string key)
         {
-            // Allows for hidden newlines/spaces INSIDE the quotes on both the key and the value
-            // Matches: "Mount Type Installed\n","Flexi Tin\n"
-            string pattern = $"\"{Regex.Escape(key)}[\\r\\n\\s]*\"[\\r\\n\\s]*,[\\r\\n\\s]*\"([^\"]+)\"";
+            // Strip any accidental quotes or commas to normalize the raw text
+            string cleanText = text.Replace("\"", "").Replace(",", "");
 
-            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+            // 1. Try to find the value sitting on the exact same line, separated by spaces or colons.
+            // Matches: "Job Type WNTD Install" or "Job Type: WNTD Install"
+            string sameLinePattern = $@"{Regex.Escape(key)}[ \t:]+([^\r\n]+)";
+            var match = Regex.Match(cleanText, sameLinePattern, RegexOptions.IgnoreCase);
 
             if (match.Success)
             {
-                // Group 1 will grab the value (e.g., "4528877\n"). Trim removes the lingering newline.
                 string val = match.Groups[1].Value.Trim();
-                if (!string.IsNullOrWhiteSpace(val))
-                {
-                    return val;
-                }
+                if (!string.IsNullOrWhiteSpace(val)) return val;
+            }
+
+            // 2. Try to find the value pushed to the VERY NEXT line (PdfPig often formats tables this way).
+            // Matches: 
+            // "ODU Serial Number Barcode Installed"
+            // "KLT25210190B"
+            string nextLinePattern = $@"{Regex.Escape(key)}[ \t]*\r?\n[ \t]*([^\r\n]+)";
+            match = Regex.Match(cleanText, nextLinePattern, RegexOptions.IgnoreCase);
+
+            if (match.Success)
+            {
+                string val = match.Groups[1].Value.Trim();
+                if (!string.IsNullOrWhiteSpace(val)) return val;
             }
 
             return null;
