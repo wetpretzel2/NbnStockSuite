@@ -73,7 +73,11 @@ namespace NbnStock.Core.Services
         private string CleanSerial(string rawSerial)
         {
             if (string.IsNullOrWhiteSpace(rawSerial)) return null;
-            return rawSerial.TrimStart('s', 'S').Trim();
+
+            // Slices off any extra table headers the Regex accidentally swallowed
+            string serialOnly = rawSerial.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)[0];
+
+            return serialOnly.TrimStart('s', 'S').Trim();
         }
 
         /// <summary>

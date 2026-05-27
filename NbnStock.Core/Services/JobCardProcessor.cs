@@ -70,7 +70,8 @@ namespace NbnStock.Core.Services
             {
                 foreach (var page in document.GetPages())
                 {
-                    text += page.Text + "\n";
+                    // This forces PdfPig to analyze the columns and insert proper line breaks!
+                    text += UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor.ContentOrderTextExtractor.GetText(page) + "\n";
                 }
             }
             return text;
