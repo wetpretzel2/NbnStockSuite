@@ -79,16 +79,16 @@ namespace NbnStock.Core.Services
         private void ApplyToDatabase(ParsedJobData data)
         {
             // --- 1. Deduct Consumables (Wall Plates & Mounts) ---
-            // Note: Make sure your StockRepository has a method to consume by name. 
-            // e.g., _stockRepo.ConsumeStockItem(itemName, quantity)
             if (data.WallPlatesConsumed > 0 && !string.IsNullOrEmpty(data.WallPlateType))
             {
-                // _stockRepo.ConsumeStockItem(data.WallPlateType, data.WallPlatesConsumed);
+                var wallPlate = _stockRepo.GetStockItemByName(data.WallPlateType);
+                if (wallPlate != null) _stockRepo.ConsumeStock(wallPlate.Id, data.WallPlatesConsumed);
             }
 
             if (data.MountsConsumed > 0 && !string.IsNullOrEmpty(data.MountType))
             {
-                // _stockRepo.ConsumeStockItem(data.MountType, data.MountsConsumed);
+                var mount = _stockRepo.GetStockItemByName(data.MountType);
+                if (mount != null) _stockRepo.ConsumeStock(mount.Id, data.MountsConsumed);
             }
 
             // --- 2. Mark Installed Units ---

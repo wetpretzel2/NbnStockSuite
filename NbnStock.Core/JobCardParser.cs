@@ -86,13 +86,24 @@ namespace NbnStock.Core.Services
         /// </summary>
         private string ExtractValue(string text, string key)
         {
-            // Using standard string formatting to avoid copy-paste escaping issues
-            string pattern = $"\"{Regex.Escape(key)}\"[\\r\\n\\s]*\\s*,\\s*\"([^\"]+)\"";
-            var match = Regex.Match(text, pattern);
+            // PdfPig extracts raw text, so we just look for the Key and grab the text immediately after it.
+
+            // 1. Try to find the value sitting on the exact same line (e.g. "Job Type: WNTD Install")
+            string sameLinePattern = $@"{Regex.Escape(key)}[\s:]+([^\r\n]+)";
+            var match = Regex.Match(text, sameLinePattern, RegexOptions.IgnoreCase);
 
             if (match.Success)
             {
-                // Return the captured group, trimming any trailing newlines from the value itself
+                string val = match.Groups[1].Value.Trim();
+                if (!string.IsNullOrWhiteSpace(val)) return val;
+            }
+
+            // 2. Try to find the value if the PDF dropped it onto the very next line
+            string nextLinePattern = $@"{Regex.Escape(key)}[\r\n]+([^\r\n]+)";
+            match = Regex.Match(text, nextLinePattern, RegexOptions.IgnoreCase);
+
+            if (match.Success)
+            {
                 return match.Groups[1].Value.Trim();
             }
 
