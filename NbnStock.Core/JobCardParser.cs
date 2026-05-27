@@ -58,7 +58,7 @@ namespace NbnStock.Core.Services
                 if (string.Equals(mountInstalled, "Flexi Tin", StringComparison.OrdinalIgnoreCase))
                 {
                     jobData.MountsConsumed = 1;
-                    jobData.MountType = "1m Mount"; // Adjust this string to perfectly match your SQLite DB item name
+                    jobData.MountType = "1m Tin Mount"; // <-- FIXED: Now exactly matches the seeded DB name!
                 }
                 // You can easily expand this later (e.g., if mountInstalled == "Gutter Mount", map to "Gutter Mount")
             }
