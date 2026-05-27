@@ -24,11 +24,13 @@ namespace NbnStock.Core.Services
         {
             var secureConfig = new EmailConfig
             {
+                ProviderType = config.ProviderType, // <-- FIXED: Tells the app we are using Microsoft 365!
                 ImapServer = config.ImapServer,
                 Port = config.Port,
                 UseSsl = config.UseSsl,
                 Username = config.Username,
-                Password = vault.Encrypt(config.Password) // Scramble it using whatever OS vault is provided
+                Password = vault.Encrypt(config.Password), // Scramble it using whatever OS vault is provided
+                AccessToken = config.AccessToken    // <-- FIXED: Saves the static token placeholder!
             };
 
             var options = new JsonSerializerOptions { WriteIndented = true };
