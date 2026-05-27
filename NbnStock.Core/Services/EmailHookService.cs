@@ -85,7 +85,7 @@ namespace NbnStock.Core.Services
                 await inbox.OpenAsync(FolderAccess.ReadWrite);
 
                 // Search for unread emails with "Work Order" in the subject
-                var query = SearchQuery.NotSeen.And(SearchQuery.SubjectContains("Work Order"));
+                var query = SearchQuery.NotSeen.And(SearchQuery.SubjectContains("Completed Jobs"));
                 var uids = await inbox.SearchAsync(query);
 
                 foreach (var uid in uids)
