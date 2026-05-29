@@ -105,19 +105,13 @@ namespace NbnStock.Core.Services
                     // Strict DB enforcement: If it's not in the DB, reject the sync!
                     throw new Exception($"ODU Serial {data.InstalledOdu} not found in inventory. Please receive it first.");
                 }
-            }
 
-            if (!string.IsNullOrEmpty(data.InstalledIdu))
-            {
-                var idu = _serialisedRepo.GetSerialisedUnitBySerial(data.InstalledIdu);
-                if (idu != null)
+                // --- AUTO-CONSUME BRACKET ---
+                // Every time an ODU is installed, automatically deduct 1 ODU Mounting Bracket
+                var bracket = _stockRepo.GetStockItemByName("ODU Mounting Bracket");
+                if (bracket != null)
                 {
-                    _serialisedRepo.UpdateSerialisedUnitStatus(idu.Id, UnitStatus.Installed);
-                }
-                else
-                {
-                    // Strict DB enforcement: If it's not in the DB, reject the sync!
-                    throw new Exception($"IDU Serial {data.InstalledIdu} not found in inventory. Please receive it first.");
+                    _stockRepo.ConsumeStock(bracket.Id, 1);
                 }
             }
 
