@@ -92,17 +92,33 @@ namespace NbnStock.Core.Services
                 if (mount != null) _stockRepo.ConsumeStock(mount.Id, data.MountsConsumed);
             }
 
-            // --- 2. Mark Installed Units ---
+            // --- 2. Mark Installed Units (STRICT INVENTORY MATCH REQUIRED) ---
             if (!string.IsNullOrEmpty(data.InstalledOdu))
             {
                 var odu = _serialisedRepo.GetSerialisedUnitBySerial(data.InstalledOdu);
-                if (odu != null) _serialisedRepo.UpdateSerialisedUnitStatus(odu.Id, UnitStatus.Installed);
+                if (odu != null)
+                {
+                    _serialisedRepo.UpdateSerialisedUnitStatus(odu.Id, UnitStatus.Installed);
+                }
+                else
+                {
+                    // Strict DB enforcement: If it's not in the DB, reject the sync!
+                    throw new Exception($"ODU Serial {data.InstalledOdu} not found in inventory. Please receive it first.");
+                }
             }
 
             if (!string.IsNullOrEmpty(data.InstalledIdu))
             {
                 var idu = _serialisedRepo.GetSerialisedUnitBySerial(data.InstalledIdu);
-                if (idu != null) _serialisedRepo.UpdateSerialisedUnitStatus(idu.Id, UnitStatus.Installed);
+                if (idu != null)
+                {
+                    _serialisedRepo.UpdateSerialisedUnitStatus(idu.Id, UnitStatus.Installed);
+                }
+                else
+                {
+                    // Strict DB enforcement: If it's not in the DB, reject the sync!
+                    throw new Exception($"IDU Serial {data.InstalledIdu} not found in inventory. Please receive it first.");
+                }
             }
 
             // --- 3. Stage E-Waste Units ---

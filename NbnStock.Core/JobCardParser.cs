@@ -22,14 +22,14 @@ namespace NbnStock.Core.Services
             jobData.RemovedIdu = CleanSerial(ExtractValue(pdfText, "Old IDU Serial"));
 
             // 4. Consumables Logic: Wall Plates
-            if (jobType.Equals("WNTD Install", StringComparison.OrdinalIgnoreCase))
+            if (jobType != null && jobType.IndexOf("WNTD Install", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 jobData.WallPlatesConsumed = 1;
                 jobData.WallPlateType = "Cat 5e Wallplate"; // System default
 
                 // Look at the cable type to override the wall plate to Cat 6 if necessary
                 string cableTypeUsed = ExtractValue(pdfText, "Cable Type Used");
-                if (!string.IsNullOrEmpty(cableTypeUsed) && cableTypeUsed.Contains("CAT6", StringComparison.OrdinalIgnoreCase))
+                if (cableTypeUsed != null && cableTypeUsed.IndexOf("CAT6", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     jobData.WallPlateType = "Cat 6 Wallplate";
                 }
@@ -38,15 +38,26 @@ namespace NbnStock.Core.Services
             // 5. Consumables Logic: Mounts
             bool isExistingMount = false;
 
-            // Treat Service Calls, SwapToLatest, and SwapODU identically for existing mounts
-            if (jobType.Equals("Service Call", StringComparison.OrdinalIgnoreCase) ||
-                jobType.Equals("SwapToLatest", StringComparison.OrdinalIgnoreCase) ||
-                jobType.Equals("SwapODU", StringComparison.OrdinalIgnoreCase))
+            if (jobType != null && (
+                jobType.IndexOf("Service Call", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                jobType.IndexOf("SwapToLatest", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                jobType.IndexOf("SwapODU", StringComparison.OrdinalIgnoreCase) >= 0))
             {
                 string mountStatus = ExtractValue(pdfText, "Mount Type Status");
-                if (string.Equals(mountStatus, "Existing", StringComparison.OrdinalIgnoreCase))
+                if (mountStatus != null && mountStatus.IndexOf("Existing", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     isExistingMount = true;
+                }
+            }
+
+            if (!isExistingMount)
+            {
+                string mountInstalled = ExtractValue(pdfText, "Mount Type Installed");
+
+                if (mountInstalled != null && mountInstalled.IndexOf("Flexi Tin", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    jobData.MountsConsumed = 1;
+                    jobData.MountType = "1m Tin Mount";
                 }
             }
 
