@@ -24,12 +24,19 @@ public partial class MainWindow : Window
     {
         var rawItems = _stockRepo.GetAllStockItems();
 
-        // Sort the list logically before binding it to the main DataGrid
+        var serialisedRepo = new SerialisedUnitRepository();
+        var onHandUnits = serialisedRepo.GetSerialisedUnitsByStatus(UnitStatus.OnHand);
+
+        foreach (var item in rawItems.Where(i => i.IsSerialised))
+        {
+            item.Quantity = onHandUnits.Count(u => u.StockItemId == item.Id);
+        }
+
         var sortedItems = rawItems
-            .OrderByDescending(i => i.IsSerialised) // 1. Serialised units always at the top
-            .ThenBy(i => i.SupplyType.ToString() == "TechSupplied" ? 1 : 0) // 2. Tech Supplied pushed to the bottom
-            .ThenBy(i => GetCategorySortWeight(i.Category)) // 3. Sort NBN stuff by Mounts, Cables, Wallplates
-            .ThenBy(i => i.Name) // 4. Alphabetical within those groups
+            .OrderByDescending(i => i.IsSerialised)
+            .ThenBy(i => i.SupplyType.ToString() == "TechSupplied" ? 1 : 0)
+            .ThenBy(i => GetCategorySortWeight(i.Category))
+            .ThenBy(i => i.Name)
             .ToList();
 
         StockItemsDataGrid.ItemsSource = sortedItems;
@@ -107,90 +114,90 @@ public partial class MainWindow : Window
             Title = "Save Monthly Report"
         };
 
-        if (saveFileDialog.ShowDialog() == true)
-            try
+        if (saveFileDialog.ShowDialog() != true)
+            return;
+
+        try
+        {
+            var sb = new StringBuilder();
+
+            var serialisedRepo = new SerialisedUnitRepository();
+            var allStock = _stockRepo.GetAllStockItems().OrderBy(i => i.Name).ToList();
+            var allOnHandUnits = serialisedRepo.GetSerialisedUnitsByStatus(UnitStatus.OnHand);
+
+            sb.AppendLine("--- CURRENT STOCK ON HAND ---");
+            sb.AppendLine("Item Code,Name,Category,Supply Type,Quantity On Hand,Serial Numbers");
+
+            foreach (var item in allStock)
             {
-                var sb = new StringBuilder();
+                var serialsString = "N/A";
+                var quantityOnHand = item.Quantity;
 
-                // Move the serialised repo up here so we can use it for both sections
-                var serialisedRepo = new SerialisedUnitRepository();
-
-                // --- SECTION 1: MASTER STOCK ON HAND ---
-                sb.AppendLine("--- CURRENT STOCK ON HAND ---");
-
-                // ADDED: "Serial Numbers" to the column headers
-                sb.AppendLine("Item Code,Name,Category,Supply Type,Quantity On Hand,Serial Numbers");
-
-                var allStock = _stockRepo.GetAllStockItems().OrderBy(i => i.Name).ToList();
-
-                // Pre-fetch all OnHand units so we don't have to hit the database 100 times in the loop below
-                var allOnHandUnits = serialisedRepo.GetSerialisedUnitsByStatus(UnitStatus.OnHand);
-
-                foreach (var item in allStock)
+                if (item.IsSerialised)
                 {
-                    // We replace commas with spaces in the name so it doesn't break the CSV columns
-                    var cleanName = item.Name.Replace(",", " ");
-                    var serialsString = "N/A";
+                    var matchingSerials = allOnHandUnits
+                        .Where(u => u.StockItemId == item.Id)
+                        .Select(u => u.SerialNumber)
+                        .OrderBy(s => s)
+                        .ToList();
 
-                    // ADDED: If it's serialised, find the exact serial numbers currently in stock
-                    if (item.IsSerialised)
-                    {
-                        var matchingSerials = allOnHandUnits
-                            .Where(u => u.StockItemId == item.Id)
-                            .Select(u => u.SerialNumber)
-                            .ToList();
-
-                        if (matchingSerials.Count > 0)
-                            // Join them with a separator so they stay inside a single Excel cell
-                            serialsString = string.Join(" | ", matchingSerials);
-                        else
-                            serialsString = "None";
-                    }
-
-                    // Append the row, now including the serialsString at the end
-                    sb.AppendLine(
-                        $"{item.ItemCode},{cleanName},{item.Category},{item.SupplyType},{item.Quantity},{serialsString}");
+                    quantityOnHand = matchingSerials.Count;
+                    serialsString = matchingSerials.Count > 0
+                        ? string.Join(" | ", matchingSerials)
+                        : "None";
                 }
 
-                // Add a couple of blank lines to separate the sections
-                sb.AppendLine();
-                sb.AppendLine();
-
-                // --- SECTION 2: ACTIVE E-WASTE PIPELINE ---
-                sb.AppendLine("--- ACTIVE E-WASTE PIPELINE ---");
-                sb.AppendLine("Serial Number,Item Code,Hardware,Current Status,Date Logged");
-
-                // We specifically filter OUT 'ApprovedForDisposal' and 'Disposed' 
-                var ewasteUnits = serialisedRepo.GetAllSerialisedUnits()
-                    .Where(u => u.Status == UnitStatus.EwastePendingSubmission ||
-                                u.Status == UnitStatus.EwasteAwaitingApproval)
-                    .OrderBy(u => u.Status)
-                    .ThenBy(u => u.LastUpdatedUtc)
-                    .ToList();
-
-                foreach (var unit in ewasteUnits)
-                {
-                    var parentItem = allStock.FirstOrDefault(s => s.Id == unit.StockItemId);
-                    var itemName = parentItem != null ? parentItem.Name.Replace(",", " ") : "Unknown";
-                    var itemCode = parentItem != null ? parentItem.ItemCode : "N/A";
-
-                    sb.AppendLine(
-                        $"{unit.SerialNumber},{itemCode},{itemName},{unit.Status},{unit.LastUpdatedUtc:dd/MM/yyyy}");
-                }
-
-                // Write the whole chunk of text to the file location you chose
-                File.WriteAllText(saveFileDialog.FileName, sb.ToString());
-
-                MessageBox.Show(
-                    "Monthly report exported successfully!\n\nYou can now double-click the file to open it in Excel, print it, or email it.",
-                    "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                sb.AppendLine(
+                    $"{Csv(item.ItemCode)},{Csv(item.Name)},{Csv(item.Category)},{Csv(item.SupplyType.ToString())},{quantityOnHand},{Csv(serialsString)}");
             }
-            catch (Exception ex)
+
+            sb.AppendLine();
+            sb.AppendLine();
+
+            sb.AppendLine("--- ACTIVE E-WASTE PIPELINE ---");
+            sb.AppendLine("Serial Number,Item Code,Hardware,Current Status,Date Logged");
+
+            var ewasteUnits = serialisedRepo.GetAllSerialisedUnits()
+                .Where(u => u.Status == UnitStatus.EwastePendingSubmission ||
+                            u.Status == UnitStatus.EwasteAwaitingApproval)
+                .OrderBy(u => u.Status)
+                .ThenBy(u => u.LastUpdatedUtc)
+                .ToList();
+
+            foreach (var unit in ewasteUnits)
             {
-                MessageBox.Show(
-                    $"Failed to export report: {ex.Message}\n\nMake sure you don't already have the file open in Excel while trying to save over it.",
-                    "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                var parentItem = allStock.FirstOrDefault(s => s.Id == unit.StockItemId);
+
+                sb.AppendLine(
+                    $"{Csv(unit.SerialNumber)},{Csv(parentItem?.ItemCode ?? "N/A")},{Csv(parentItem?.Name ?? "Unknown")},{Csv(unit.Status.ToString())},{unit.LastUpdatedUtc:dd/MM/yyyy}");
             }
+
+            File.WriteAllText(saveFileDialog.FileName, sb.ToString());
+
+            MessageBox.Show(
+                "Monthly report exported successfully!",
+                "Export Complete",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Failed to export report: {ex.Message}",
+                "Export Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private static string Csv(string value)
+    {
+        value ??= "";
+
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+
+        return value;
     }
 
     private async void BtnSyncJobCards_Click(object sender, RoutedEventArgs e)
