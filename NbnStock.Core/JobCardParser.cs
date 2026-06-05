@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace NbnStock.Core.Services;
+﻿namespace NbnStock.Core.Services;
 
 public class JobCardParser
 {
@@ -35,41 +33,64 @@ public class JobCardParser
         // 5. Consumables Logic: Mounts
         var isExistingMount = false;
 
-        if (jobType != null && (
-                jobType.IndexOf("Service Call", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                jobType.IndexOf("SwapToLatest", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                jobType.IndexOf("SwapODU", StringComparison.OrdinalIgnoreCase) >= 0))
+        if (IsServiceOrSwapJob(jobType))
         {
             var mountStatus = ExtractValue(pdfText, "Mount Type Status");
-            if (mountStatus != null && mountStatus.IndexOf("Existing", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (ContainsIgnoreCase(mountStatus, "Existing"))
                 isExistingMount = true;
         }
 
         if (!isExistingMount)
         {
             var mountInstalled = ExtractValue(pdfText, "Mount Type Installed");
+            var mappedMountType = MapMountType(mountInstalled);
 
-            if (mountInstalled != null && mountInstalled.IndexOf("Flexi Tin", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (!string.IsNullOrWhiteSpace(mappedMountType))
             {
                 jobData.MountsConsumed = 1;
-                jobData.MountType = "1m Tin Mount";
+                jobData.MountType = mappedMountType;
             }
-        }
-
-        // Only deduct a mount if it isn't marked as existing
-        if (!isExistingMount)
-        {
-            var mountInstalled = ExtractValue(pdfText, "Mount Type Installed");
-
-            if (string.Equals(mountInstalled, "Flexi Tin", StringComparison.OrdinalIgnoreCase))
-            {
-                jobData.MountsConsumed = 1;
-                jobData.MountType = "1m Tin Mount"; // <-- FIXED: Now exactly matches the seeded DB name!
-            }
-            // You can easily expand this later (e.g., if mountInstalled == "Gutter Mount", map to "Gutter Mount")
         }
 
         return jobData;
+    }
+
+    private static bool IsServiceOrSwapJob(string jobType)
+    {
+        return ContainsIgnoreCase(jobType, "Service Call")
+               || ContainsIgnoreCase(jobType, "SwapToLatest")
+               || ContainsIgnoreCase(jobType, "Swap To Latest")
+               || ContainsIgnoreCase(jobType, "SwapODU")
+               || ContainsIgnoreCase(jobType, "Swap ODU");
+    }
+
+    private static string MapMountType(string mountInstalled)
+    {
+        if (string.IsNullOrWhiteSpace(mountInstalled))
+            return null;
+
+        if (ContainsIgnoreCase(mountInstalled, "Flexi Tin"))
+            return "1m Tin Mount";
+
+        if (ContainsIgnoreCase(mountInstalled, "Fascia"))
+            return "Vertical/Fascia Mount";
+
+        if (ContainsIgnoreCase(mountInstalled, "Gutter"))
+            return "Gutter Mount";
+
+        if (ContainsIgnoreCase(mountInstalled, "2m Tin"))
+            return "2m Tin Mount";
+
+        if (ContainsIgnoreCase(mountInstalled, "3m Tin"))
+            return "3m Tin Mount";
+
+        return null;
+    }
+
+    private static bool ContainsIgnoreCase(string value, string searchText)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+               && value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     /// <summary>
@@ -90,40 +111,117 @@ public class JobCardParser
     ///     Pulls values from the pseudo-CSV format extracted by PdfPig.
     ///     Safely handles the newline and whitespace formatting inside the quotes.
     /// </summary>
-    /// <summary>
-    ///     Pulls values from the pseudo-CSV format extracted by PdfPig.
-    ///     Safely handles the newline and whitespace formatting inside the quotes.
-    /// </summary>
     private string ExtractValue(string text, string key)
     {
-        // Strip any accidental quotes or commas to normalize the raw text
-        var cleanText = text.Replace("\"", "").Replace(",", "");
+        if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(key))
+            return null;
 
-        // 1. Try to find the value sitting on the exact same line, separated by spaces or colons.
-        // Matches: "Job Type WNTD Install" or "Job Type: WNTD Install"
-        var sameLinePattern = $@"{Regex.Escape(key)}[ \t:]+([^\r\n]+)";
-        var match = Regex.Match(cleanText, sameLinePattern, RegexOptions.IgnoreCase);
+        var cleanText = NormalizePdfText(text);
 
-        if (match.Success)
+        var keyIndex = cleanText.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+        if (keyIndex < 0)
+            return null;
+
+        var valueStart = keyIndex + key.Length;
+
+        while (valueStart < cleanText.Length &&
+               (char.IsWhiteSpace(cleanText[valueStart]) || cleanText[valueStart] == ':' ||
+                cleanText[valueStart] == '-'))
+            valueStart++;
+
+        if (valueStart >= cleanText.Length)
+            return null;
+
+        var valueEnd = FindNextKnownLabelIndex(cleanText, valueStart);
+        var rawValue = valueEnd > valueStart
+            ? cleanText.Substring(valueStart, valueEnd - valueStart)
+            : cleanText.Substring(valueStart);
+
+        var value = rawValue.Trim();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    private static string NormalizePdfText(string text)
+    {
+        return text
+            .Replace("\"", "")
+            .Replace(",", "")
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n");
+    }
+
+    private static int FindNextKnownLabelIndex(string text, int startIndex)
+    {
+        var knownLabels = new[]
         {
-            var val = match.Groups[1].Value.Trim();
-            if (!string.IsNullOrWhiteSpace(val)) return val;
+            "Address",
+            "Fixed Wireless Job Details",
+            "Work Order ID",
+            "Client Name",
+            "Region",
+            "Job Type",
+            "Installation Date",
+            "Appointment Time Slot",
+            "Final Job Status",
+            "EPS Appointment ID",
+            "Location ID",
+            "NTD ID",
+            "Job Times",
+            "Job Start Time",
+            "Job Finish Time",
+            "Fixed Wireless Job Closure Information",
+            "Service Fault Main",
+            "PreQual Signal",
+            "Prequal Signal Final",
+            "Delta",
+            "RSRP",
+            "Cable Type Used",
+            "Mount Type Status",
+            "Mount Type Installed",
+            "Prequal Mount Height",
+            "Prequal Cell Final",
+            "Prequal Cell Direction Final",
+            "Prequal Cell Direction (Alternative)",
+            "Current Cell LTE Threshold",
+            "Current Cell Delta Threshold",
+            "Current Cell LTE RSRP Target",
+            "WISDM LOC To Target Site Line of",
+            "WISDM Number of Candidate Target",
+            "Link Speed Cable Used",
+            "Link Speed",
+            "Fixed Wireless Inventory",
+            "ODU Serial Number Barcode Installed",
+            "ODU IMEI Barcode Installed",
+            "IDU Serial Number Barcode Installed",
+            "Old ODU Serial",
+            "Old IMEI Number",
+            "Old IDU Serial",
+            "Comments",
+            "Additional Information",
+            "Complaint Resolved",
+            "GPS Location and Signatures",
+            "Technician Declaration GPS Latitude",
+            "Technician Declaration GPS Longitude",
+            "Customer Declaration GPS Latitude",
+            "Customer Declaration GPS Longitude",
+            "Technician Signoff GPS Latitude",
+            "Technician Signoff GPS Longitude",
+            "Photos"
+        };
+
+        var bestIndex = -1;
+
+        foreach (var label in knownLabels)
+        {
+            var index = text.IndexOf(label, startIndex, StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+                continue;
+
+            if (bestIndex < 0 || index < bestIndex)
+                bestIndex = index;
         }
 
-        // 2. Try to find the value pushed to the VERY NEXT line (PdfPig often formats tables this way).
-        // Matches: 
-        // "ODU Serial Number Barcode Installed"
-        // "KLT25210190B"
-        var nextLinePattern = $@"{Regex.Escape(key)}[ \t]*\r?\n[ \t]*([^\r\n]+)";
-        match = Regex.Match(cleanText, nextLinePattern, RegexOptions.IgnoreCase);
-
-        if (match.Success)
-        {
-            var val = match.Groups[1].Value.Trim();
-            if (!string.IsNullOrWhiteSpace(val)) return val;
-        }
-
-        return null;
+        return bestIndex;
     }
 }
 

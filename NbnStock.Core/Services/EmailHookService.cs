@@ -44,9 +44,12 @@ public class EmailHookService
         if (!Directory.Exists(_downloadDirectory)) Directory.CreateDirectory(_downloadDirectory);
     }
 
-    public async Task<List<string>> DownloadNewJobCardsAsync(string freshAccessToken = null)
+    public async Task<(int Processed, int Errors)> ProcessUnreadJobCardsAsync(
+        Func<string, Task> processPdfAsync,
+        string freshAccessToken = null)
     {
-        var downloadedFiles = new List<string>();
+        var processedCount = 0;
+        var errorCount = 0;
 
         using (var client = new ImapClient())
         {
@@ -57,13 +60,13 @@ public class EmailHookService
             if (_config.ProviderType == EmailProvider.Microsoft365 ||
                 _config.ProviderType == EmailProvider.GoogleWorkspace)
             {
-                // 1. Prioritize the fresh token passed from the UI over the saved config
+                // Prioritize the fresh token passed from the UI over the saved config
                 var tokenToUse = !string.IsNullOrEmpty(freshAccessToken) ? freshAccessToken : _config.AccessToken;
 
                 if (string.IsNullOrEmpty(tokenToUse))
                     throw new Exception("OAuth Access Token is missing or expired. Please sign in via Settings.");
 
-                // 2. Authenticate securely using the valid token
+                // Authenticate securely using the valid token
                 var oauth2 = new SaslMechanismOAuth2(_config.Username, tokenToUse);
                 await client.AuthenticateAsync(oauth2);
             }
@@ -76,19 +79,25 @@ public class EmailHookService
             var inbox = client.Inbox;
             await inbox.OpenAsync(FolderAccess.ReadWrite);
 
-            // Search for unread emails with "Work Order" in the subject
+            // Search for unread emails with "Completed Jobs" in the subject
             var query = SearchQuery.NotSeen.And(SearchQuery.SubjectContains("Completed Jobs"));
             var uids = await inbox.SearchAsync(query);
 
             foreach (var uid in uids)
             {
-                var message = await inbox.GetMessageAsync(uid);
+                var savedFiles = new List<string>();
 
-                foreach (var attachment in message.Attachments)
-                    // Ensure it is a valid PDF attachment
-                    if (attachment is MimePart part &&
-                        part.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                try
+                {
+                    var message = await inbox.GetMessageAsync(uid);
+
+                    foreach (var attachment in message.Attachments)
                     {
+                        // Ensure it is a valid PDF attachment
+                        if (attachment is not MimePart part ||
+                            !part.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
                         var filePath = Path.Combine(_downloadDirectory, part.FileName);
 
                         using (var stream = File.Create(filePath))
@@ -96,16 +105,49 @@ public class EmailHookService
                             part.Content?.DecodeTo(stream);
                         }
 
-                        downloadedFiles.Add(filePath);
+                        savedFiles.Add(filePath);
                     }
 
-                // Mark as read so it isn't processed again on the next sync
-                await inbox.AddFlagsAsync(uid, MessageFlags.Seen, true);
+                    if (savedFiles.Count == 0)
+                        throw new InvalidOperationException(
+                            $"Completed Jobs email contains no PDF attachments. Subject: {message.Subject}");
+
+                    foreach (var pdfPath in savedFiles) await processPdfAsync(pdfPath);
+
+                    // Mark as read only after all PDFs on this email have processed successfully.
+                    await inbox.AddFlagsAsync(uid, MessageFlags.Seen, true);
+                    processedCount += savedFiles.Count;
+                }
+                catch (Exception ex)
+                {
+                    errorCount++;
+                    LogSyncError(uid.ToString(), savedFiles, ex);
+
+                    // Do not mark this email as read. Leaving it unread preserves the retry path.
+                }
             }
 
             await client.DisconnectAsync(true);
         }
 
-        return downloadedFiles;
+        return (processedCount, errorCount);
+    }
+
+    private static void LogSyncError(string uid, IReadOnlyCollection<string> savedFiles, Exception exception)
+    {
+        var errorFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "NbnStockSuite",
+            "JobCardErrors");
+
+        Directory.CreateDirectory(errorFolder);
+
+        var errorFile = Path.Combine(errorFolder, "sync-errors.txt");
+        var files = savedFiles.Count == 0 ? "No files saved" : string.Join(", ", savedFiles);
+
+        File.AppendAllText(errorFile,
+            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Email UID: {uid}{Environment.NewLine}" +
+            $"Saved PDFs: {files}{Environment.NewLine}" +
+            $"{exception}{Environment.NewLine}{Environment.NewLine}");
     }
 }

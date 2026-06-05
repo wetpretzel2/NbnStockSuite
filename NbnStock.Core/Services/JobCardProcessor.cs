@@ -21,55 +21,33 @@ public class JobCardProcessor
     }
 
     /// <summary>
-    ///     Runs the full automation pipeline: Downloads, parses, and updates the database.
-    ///     Returns a tuple with the count of successfully processed and failed cards.
+    ///     Runs the full automation pipeline: downloads each unread job card, parses it,
+    ///     updates the database, and only reports success after the database update succeeds.
     /// </summary>
     public async Task<(int Processed, int Errors)> RunSyncAsync()
     {
-        var processedCount = 0;
-        var errorCount = 0;
+        return await _emailService.ProcessUnreadJobCardsAsync(ProcessPdfAsync);
+    }
 
-        // 1. Download fresh job cards
-        var newPdfs = await _emailService.DownloadNewJobCardsAsync();
+    private Task ProcessPdfAsync(string pdfPath)
+    {
+        // 1. Extract the text using PdfPig
+        var fullText = ExtractTextFromPdf(pdfPath);
 
-        foreach (var pdfPath in newPdfs)
-            try
-            {
-                // 2. Extract the text using PdfPig
-                var fullText = ExtractTextFromPdf(pdfPath);
+        // 2. Parse the data
+        var jobData = _parser.ParseJobCard(fullText);
 
-                // 3. Parse the data
-                var jobData = _parser.ParseJobCard(fullText);
+        if (IsNoOpJobCard(jobData))
+            throw new InvalidOperationException(
+                $"Job card parsed but no stock or e-waste actions were detected. PDF: {Path.GetFileName(pdfPath)}");
 
-                if (IsNoOpJobCard(jobData))
-                    throw new InvalidOperationException(
-                        $"Job card parsed but no stock or e-waste actions were detected. PDF: {Path.GetFileName(pdfPath)}");
+        // 3. Commit to the database
+        ApplyToDatabase(jobData);
 
-                // 4. Commit to the database
-                ApplyToDatabase(jobData);
-                processedCount++;
-                // Clean up the file to keep your drive clear
-                File.Delete(pdfPath);
-            }
-            catch (Exception ex)
-            {
-                errorCount++;
+        // 4. Clean up the file only after the database update succeeds
+        File.Delete(pdfPath);
 
-                var errorFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "NbnStockSuite",
-                    "JobCardErrors");
-
-                Directory.CreateDirectory(errorFolder);
-
-                var errorFile = Path.Combine(errorFolder, "sync-errors.txt");
-
-                File.AppendAllText(errorFile,
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {Path.GetFileName(pdfPath)}{Environment.NewLine}" +
-                    $"{ex}{Environment.NewLine}{Environment.NewLine}");
-            }
-
-        return (processedCount, errorCount);
+        return Task.CompletedTask;
     }
 
     private static bool IsNoOpJobCard(ParsedJobData data)
@@ -113,34 +91,56 @@ public class JobCardProcessor
         // --- 2. Mark Installed Units (STRICT INVENTORY MATCH REQUIRED) ---
         if (!string.IsNullOrEmpty(data.InstalledOdu))
         {
-            var odu = _serialisedRepo.GetSerialisedUnitBySerial(data.InstalledOdu);
-            if (odu != null)
-                _serialisedRepo.UpdateSerialisedUnitStatus(odu.Id, UnitStatus.Installed);
-            else
-                // Strict DB enforcement: If it's not in the DB, reject the sync!
-                throw new Exception($"ODU Serial {data.InstalledOdu} not found in inventory. Please receive it first.");
+            MarkInstalledOrThrow(data.InstalledOdu, "ODU");
 
             // --- AUTO-CONSUME BRACKET ---
             // Every time an ODU is installed, automatically deduct 1 ODU Mounting Bracket
             var bracket = _stockRepo.GetStockItemByName("ODU Mounting Bracket");
-            if (bracket != null) _stockRepo.ConsumeStock(bracket.Id, 1);
+            if (bracket == null)
+                throw new Exception("Stock item 'ODU Mounting Bracket' was not found in the database.");
+
+            _stockRepo.ConsumeStock(bracket.Id, 1);
+        }
+
+        if (!string.IsNullOrEmpty(data.InstalledIdu))
+        {
+            MarkInstalledOrThrow(data.InstalledIdu, "IDU");
         }
 
         // --- 3. Stage E-Waste Units ---
-        ProcessEwaste(data.RemovedOdu);
-        ProcessEwaste(data.RemovedIdu);
+        ProcessEwaste(data.RemovedOdu, "Outdoor Unit (ODU)");
+        ProcessEwaste(data.RemovedIdu, "Indoor Unit (IDU)");
     }
 
-    private void ProcessEwaste(string serial)
+    private void MarkInstalledOrThrow(string serial, string unitType)
     {
-        if (string.IsNullOrEmpty(serial)) return;
+        var unit = _serialisedRepo.GetSerialisedUnitBySerial(serial);
+        if (unit == null)
+            throw new Exception($"{unitType} Serial {serial} not found in inventory. Please receive it first.");
+
+        if (unit.Status != UnitStatus.OnHand)
+            throw new Exception($"{unitType} Serial {serial} is not currently OnHand. Current status: {unit.Status}.");
+
+        _serialisedRepo.UpdateSerialisedUnitStatus(unit.Id, UnitStatus.Installed);
+    }
+
+    private void ProcessEwaste(string serial, string stockItemName)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+            return;
 
         var existingUnit = _serialisedRepo.GetSerialisedUnitBySerial(serial);
 
         if (existingUnit != null)
+        {
             _serialisedRepo.UpdateSerialisedUnitStatus(existingUnit.Id, UnitStatus.EwastePendingSubmission);
-        // Legacy Unit pulled off a roof (Not in DB). 
-        // You will need to pass an ID for a generic "Legacy Hardware" StockItem here.
-        // _serialisedRepo.AddUnitToEwaste(genericLegacyStockItemId, serial);
+            return;
+        }
+
+        var stockItem = _stockRepo.GetStockItemByName(stockItemName);
+        if (stockItem == null)
+            throw new Exception($"Stock item '{stockItemName}' was not found in the database. Cannot create e-waste record for serial {serial}.");
+
+        _serialisedRepo.AddUnitToEwaste(stockItem.Id, serial);
     }
 }
