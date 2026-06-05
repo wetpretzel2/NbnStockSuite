@@ -45,11 +45,15 @@ namespace NbnStock.Core.Services
                     // 3. Parse the data
                     ParsedJobData jobData = _parser.ParseJobCard(fullText);
 
+                    if (IsNoOpJobCard(jobData))
+                    {
+                        throw new InvalidOperationException(
+                            $"Job card parsed but no stock or e-waste actions were detected. PDF: {Path.GetFileName(pdfPath)}");
+                    }
+
                     // 4. Commit to the database
                     ApplyToDatabase(jobData);
-
                     processedCount++;
-
                     // Clean up the file to keep your drive clear
                     File.Delete(pdfPath);
                 }
@@ -61,6 +65,15 @@ namespace NbnStock.Core.Services
             }
 
             return (processedCount, errorCount);
+        }
+        private static bool IsNoOpJobCard(ParsedJobData data)
+        {
+            return string.IsNullOrWhiteSpace(data.InstalledOdu)
+                   && string.IsNullOrWhiteSpace(data.InstalledIdu)
+                   && string.IsNullOrWhiteSpace(data.RemovedOdu)
+                   && string.IsNullOrWhiteSpace(data.RemovedIdu)
+                   && data.WallPlatesConsumed <= 0
+                   && data.MountsConsumed <= 0;
         }
 
         private string ExtractTextFromPdf(string filePath)
