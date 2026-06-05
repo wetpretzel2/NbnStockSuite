@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using NbnStock.Core.Services;
 
@@ -10,8 +9,8 @@ public class WindowsCredentialVault : ICredentialVault
     public string Encrypt(string plainText)
     {
         if (string.IsNullOrEmpty(plainText)) return plainText;
-        byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
-        byte[] encryptedBytes = ProtectedData.Protect(plainBytes, null, DataProtectionScope.CurrentUser);
+        var plainBytes = Encoding.UTF8.GetBytes(plainText);
+        var encryptedBytes = ProtectedData.Protect(plainBytes, null, DataProtectionScope.CurrentUser);
         return Convert.ToBase64String(encryptedBytes);
     }
 
@@ -20,8 +19,8 @@ public class WindowsCredentialVault : ICredentialVault
         if (string.IsNullOrEmpty(cipherText)) return cipherText;
         try
         {
-            byte[] encryptedBytes = Convert.FromBase64String(cipherText);
-            byte[] plainBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
+            var encryptedBytes = Convert.FromBase64String(cipherText);
+            var plainBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
             return Encoding.UTF8.GetString(plainBytes);
         }
         catch (CryptographicException)

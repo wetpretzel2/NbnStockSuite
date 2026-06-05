@@ -8,7 +8,7 @@ namespace NbnStock.Windows;
 public partial class AddCustomItemWindow : Window
 {
     private readonly StockRepository _stockRepo;
-    private bool _isManuallyEditingCode = false;
+    private bool _isManuallyEditingCode;
 
     public AddCustomItemWindow()
     {
@@ -27,7 +27,7 @@ public partial class AddCustomItemWindow : Window
         // Stop auto-generating if the user has decided to type their own custom code
         if (_isManuallyEditingCode) return;
 
-        string name = InputName.Text.Trim().ToUpper();
+        var name = InputName.Text.Trim().ToUpper();
         if (string.IsNullOrWhiteSpace(name))
         {
             InputCode.Text = "";
@@ -36,7 +36,7 @@ public partial class AddCustomItemWindow : Window
 
         // Split the name into words
         var words = name.Split(new[] { ' ', '-' }, StringSplitOptions.RemoveEmptyEntries);
-        string codeSuffix = "";
+        var codeSuffix = "";
 
         if (words.Length == 1)
             // One word: "SADDLES" -> "SAD"
@@ -67,8 +67,8 @@ public partial class AddCustomItemWindow : Window
                 return;
             }
 
-            int.TryParse(InputQty.Text, out int qty);
-            int.TryParse(InputMin.Text, out int minStock);
+            int.TryParse(InputQty.Text, out var qty);
+            int.TryParse(InputMin.Text, out var minStock);
 
             var newItem = new StockItem
             {

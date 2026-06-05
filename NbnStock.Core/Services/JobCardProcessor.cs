@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using NbnStock.Core.Models;
+﻿using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
@@ -105,10 +102,7 @@ public class JobCardProcessor
             _stockRepo.ConsumeStock(bracket.Id, 1);
         }
 
-        if (!string.IsNullOrEmpty(data.InstalledIdu))
-        {
-            MarkInstalledOrThrow(data.InstalledIdu, "IDU");
-        }
+        if (!string.IsNullOrEmpty(data.InstalledIdu)) MarkInstalledOrThrow(data.InstalledIdu, "IDU");
 
         // --- 3. Stage E-Waste Units ---
         ProcessEwaste(data.RemovedOdu, "Outdoor Unit (ODU)");
@@ -142,7 +136,8 @@ public class JobCardProcessor
 
         var stockItem = _stockRepo.GetStockItemByName(stockItemName);
         if (stockItem == null)
-            throw new Exception($"Stock item '{stockItemName}' was not found in the database. Cannot create e-waste record for serial {serial}.");
+            throw new Exception(
+                $"Stock item '{stockItemName}' was not found in the database. Cannot create e-waste record for serial {serial}.");
 
         _serialisedRepo.AddUnitToEwaste(stockItem.Id, serial);
     }

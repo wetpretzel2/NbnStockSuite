@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -67,10 +65,10 @@ public partial class BulkConsumeWindow : Window
         if (e.Key == Key.Return || e.Key == Key.Enter)
         {
             var selectedItem = ComboItems.SelectedItem as StockItem;
-            string serial = InputScanner.Text.Trim();
+            var serial = InputScanner.Text.Trim();
 
             // NEW: Strip the leading 'S'
-            if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase)) serial = serial.Substring(1);
+            if (serial.StartsWith("S", StringComparison.OrdinalIgnoreCase)) serial = serial.Substring(1);
 
             if (selectedItem != null && !string.IsNullOrEmpty(serial))
             {
@@ -128,10 +126,10 @@ public partial class BulkConsumeWindow : Window
     private void BtnAddConsumable_Click(object sender, RoutedEventArgs e)
     {
         var selectedItem = ComboItems.SelectedItem as StockItem;
-        if (selectedItem != null && int.TryParse(InputQuantity.Text, out int qty) && qty > 0)
+        if (selectedItem != null && int.TryParse(InputQuantity.Text, out var qty) && qty > 0)
         {
             // Calculate how many of this item are already in the queue
-            int currentlyQueued = ConsumeBatch
+            var currentlyQueued = ConsumeBatch
                 .Where(b => b.StockItemId == selectedItem.Id)
                 .Sum(b => b.Quantity);
 
@@ -189,7 +187,7 @@ public partial class BulkConsumeWindow : Window
 
             MessageBox.Show($"Successfully recorded consumption for {ConsumeBatch.Count} entries.",
                 "Consumption Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-            this.DialogResult = true;
+            DialogResult = true;
         }
         catch (Exception ex)
         {

@@ -1,8 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
 using System.Windows;
+using Microsoft.Win32;
 using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 using NbnStock.Core.Services;
@@ -101,7 +100,7 @@ public partial class MainWindow : Window
 
     private void BtnExportReport_Click(object sender, RoutedEventArgs e)
     {
-        var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+        var saveFileDialog = new SaveFileDialog
         {
             Filter = "CSV Report (*.csv)|*.csv",
             FileName = $"Stock_Report_{DateTime.Now:MMM_yyyy}.csv",
@@ -130,8 +129,8 @@ public partial class MainWindow : Window
                 foreach (var item in allStock)
                 {
                     // We replace commas with spaces in the name so it doesn't break the CSV columns
-                    string cleanName = item.Name.Replace(",", " ");
-                    string serialsString = "N/A";
+                    var cleanName = item.Name.Replace(",", " ");
+                    var serialsString = "N/A";
 
                     // ADDED: If it's serialised, find the exact serial numbers currently in stock
                     if (item.IsSerialised)
@@ -172,8 +171,8 @@ public partial class MainWindow : Window
                 foreach (var unit in ewasteUnits)
                 {
                     var parentItem = allStock.FirstOrDefault(s => s.Id == unit.StockItemId);
-                    string itemName = parentItem != null ? parentItem.Name.Replace(",", " ") : "Unknown";
-                    string itemCode = parentItem != null ? parentItem.ItemCode : "N/A";
+                    var itemName = parentItem != null ? parentItem.Name.Replace(",", " ") : "Unknown";
+                    var itemCode = parentItem != null ? parentItem.ItemCode : "N/A";
 
                     sb.AppendLine(
                         $"{unit.SerialNumber},{itemCode},{itemName},{unit.Status},{unit.LastUpdatedUtc:dd/MM/yyyy}");
@@ -208,7 +207,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        bool isM365 = config.ProviderType == EmailProvider.Microsoft365;
+        var isM365 = config.ProviderType == EmailProvider.Microsoft365;
 
         // 2. If it's legacy IMAP, ensure they have an App Password saved
         if (!isM365 && string.IsNullOrEmpty(config.Password))
@@ -223,7 +222,7 @@ public partial class MainWindow : Window
         if (isM365)
         {
             var authWindow = new EmailSettingsWindow();
-            string activeToken = await authWindow.GetTokenAsync();
+            var activeToken = await authWindow.GetTokenAsync();
 
             if (string.IsNullOrEmpty(activeToken))
             {

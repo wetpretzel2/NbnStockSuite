@@ -1,7 +1,6 @@
-﻿using NbnStock.Core.Data;
+﻿using System.Windows;
 using Microsoft.Win32;
-using System;
-using System.Windows;
+using NbnStock.Core.Data;
 
 namespace NbnStock.Windows;
 
@@ -13,13 +12,13 @@ public partial class App : Application
 
         DatabaseInitialiser.Initialise();
 
-        string startupTheme = GetWindowsTheme();
+        var startupTheme = GetWindowsTheme();
         ApplyTheme(startupTheme);
     }
 
     public void ApplyTheme(string themeName)
     {
-        string themePath = themeName switch
+        var themePath = themeName switch
         {
             "Dark" => "Themes/DarkTheme.xaml",
             _ => "Themes/LightTheme.xaml"
@@ -39,7 +38,7 @@ public partial class App : Application
         const string registryKey = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
         const string valueName = "AppsUseLightTheme";
 
-        object? value = Registry.CurrentUser.OpenSubKey(registryKey)?.GetValue(valueName);
+        var value = Registry.CurrentUser.OpenSubKey(registryKey)?.GetValue(valueName);
 
         if (value is int intValue) return intValue == 0 ? "Dark" : "Light";
 

@@ -1,7 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.IO;
+using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -49,11 +47,11 @@ public partial class EmailSettingsWindow : Window
             if (File.Exists(cacheFilePath))
                 try
                 {
-                    byte[] encryptedData = File.ReadAllBytes(cacheFilePath);
-                    byte[] decryptedData = System.Security.Cryptography.ProtectedData.Unprotect(
+                    var encryptedData = File.ReadAllBytes(cacheFilePath);
+                    var decryptedData = ProtectedData.Unprotect(
                         encryptedData,
                         null,
-                        System.Security.Cryptography.DataProtectionScope.CurrentUser);
+                        DataProtectionScope.CurrentUser);
 
                     args.TokenCache.DeserializeMsalV3(decryptedData);
                 }
@@ -67,11 +65,11 @@ public partial class EmailSettingsWindow : Window
         {
             if (args.HasStateChanged)
             {
-                byte[] decryptedData = args.TokenCache.SerializeMsalV3();
-                byte[] encryptedData = System.Security.Cryptography.ProtectedData.Protect(
+                var decryptedData = args.TokenCache.SerializeMsalV3();
+                var encryptedData = ProtectedData.Protect(
                     decryptedData,
                     null,
-                    System.Security.Cryptography.DataProtectionScope.CurrentUser);
+                    DataProtectionScope.CurrentUser);
 
                 File.WriteAllBytes(cacheFilePath, encryptedData);
             }
@@ -149,7 +147,7 @@ public partial class EmailSettingsWindow : Window
     {
         if (ComboProvider.SelectedItem is ComboBoxItem item)
         {
-            bool isM365 = item.Tag?.ToString() == "Microsoft365";
+            var isM365 = item.Tag?.ToString() == "Microsoft365";
             PanelModernAuth.Visibility = isM365 ? Visibility.Visible : Visibility.Collapsed;
             PanelBasicAuth.Visibility = isM365 ? Visibility.Collapsed : Visibility.Visible;
 
@@ -164,7 +162,7 @@ public partial class EmailSettingsWindow : Window
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)
     {
-        if (int.TryParse(TxtPort.Text, out int port))
+        if (int.TryParse(TxtPort.Text, out var port))
         {
             var newConfig = new EmailConfig
             {

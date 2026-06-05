@@ -41,7 +41,7 @@ public partial class EWasteRecoveryWindow : Window
         if (e.Key == Key.Return || e.Key == Key.Enter)
         {
             // V1 Scanner Fix: Automatically strips the manufacturer 'S' prefix
-            string serial = InputScanner.Text.TrimStart('s', 'S').Trim();
+            var serial = InputScanner.Text.TrimStart('s', 'S').Trim();
 
             if (string.IsNullOrEmpty(serial)) return;
 
@@ -129,7 +129,7 @@ public partial class EWasteRecoveryWindow : Window
 
             MessageBox.Show($"Successfully queued {RecoveryBatch.Count} units into the E-Waste pipeline.",
                 "Recovery Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-            this.DialogResult = true;
+            DialogResult = true;
         }
         catch (Exception ex)
         {

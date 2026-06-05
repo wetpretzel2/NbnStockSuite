@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using NbnStock.Core.Models;
@@ -53,11 +51,11 @@ public partial class ConsumeStockWindow : Window
     {
         if (e.Key == Key.Return || e.Key == Key.Enter)
         {
-            string serial = InputScanner.Text.Trim();
+            var serial = InputScanner.Text.Trim();
             if (string.IsNullOrEmpty(serial)) return;
 
             // NEW: Strip the leading 'S'
-            if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase)) serial = serial.Substring(1);
+            if (serial.StartsWith("S", StringComparison.OrdinalIgnoreCase)) serial = serial.Substring(1);
 
             // 1. Prevent double-scanning the same unit in this session
             if (ScannedQueue.Any(u => u.SerialNumber.Equals(serial, StringComparison.OrdinalIgnoreCase)))
@@ -132,7 +130,7 @@ public partial class ConsumeStockWindow : Window
             }
             else
             {
-                if (!int.TryParse(InputQuantity.Text, out int qty) || qty <= 0)
+                if (!int.TryParse(InputQuantity.Text, out var qty) || qty <= 0)
                 {
                     MessageBox.Show("Please enter a valid quantity greater than zero.", "Validation Error",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
