@@ -1,60 +1,60 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <AssemblyName>NBNStockPortal</AssemblyName>
-    <Title>NBNStockPortal</Title>
-    <Product>NBNStockPortal</Product>
-    <Description>NBN Stock Portal is a comprehensive inventory management tool designed for field contractors. It features real-time tracking of serialised hardware, bulk consumable logging, automated E-Waste pipeline management, and monthly CSV reporting.</Description>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <ApplicationIcon>nbn-4.ico</ApplicationIcon>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <AssemblyName>NBNStockPortal</AssemblyName>
+        <Title>NBNStockPortal</Title>
+        <Product>NBNStockPortal</Product>
+        <Description>NBN Stock Portal is a comprehensive inventory management tool designed for field contractors. It features real-time tracking of serialised hardware, bulk consumable logging, automated E-Waste pipeline management, and monthly CSV reporting.</Description>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <ApplicationIcon>nbn-4.ico</ApplicationIcon>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="nbn-4.ico" />
-    <None Remove="README.md" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Remove="nbn-4.ico"/>
+        <None Remove="README.md"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Views\" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Views\"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.84.1" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.8" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Identity.Client" Version="4.84.1"/>
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.8"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NbnStock.Core\NbnStock.Core.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\NbnStock.Core\NbnStock.Core.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="nbn-4.ico" />
-    <Resource Include="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </Resource>
-  </ItemGroup>
+    <ItemGroup>
+        <Resource Include="nbn-4.ico"/>
+        <Resource Include="README.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </Resource>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Update="Properties\Resources.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Resources.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-	<Target Name="CopyReadmeToPublish" AfterTargets="Publish">
-		<Copy SourceFiles="README.md" DestinationFolder="$(PublishDir)" />
-	</Target>
+    <ItemGroup>
+        <EmbeddedResource Update="Properties\Resources.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
+    <Target Name="CopyReadmeToPublish" AfterTargets="Publish">
+        <Copy SourceFiles="README.md" DestinationFolder="$(PublishDir)"/>
+    </Target>
 </Project>

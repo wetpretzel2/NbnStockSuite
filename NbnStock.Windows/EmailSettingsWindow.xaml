@@ -7,44 +7,48 @@
         Foreground="{DynamicResource ResourceKey=PrimaryTextBrush}">
 
     <StackPanel Margin="20">
-        <TextBlock Text="Email Configuration" FontSize="20" FontWeight="Bold" Margin="0,0,0,5"/>
+        <TextBlock Text="Email Configuration" FontSize="20" FontWeight="Bold" Margin="0,0,0,5" />
         <TextBlock Text="Select your provider and authenticate to enable background job card syncing."
-                   Foreground="{DynamicResource ResourceKey=SecondaryTextBrush}" Margin="0,0,0,20" TextWrapping="Wrap"/>
+                   Foreground="{DynamicResource ResourceKey=SecondaryTextBrush}" Margin="0,0,0,20" TextWrapping="Wrap" />
 
-        <TextBlock Text="Email Provider:" FontWeight="SemiBold"/>
-        <ComboBox x:Name="ComboProvider" Margin="0,5,0,15" Height="25" SelectionChanged="ComboProvider_SelectionChanged">
-            <ComboBoxItem Content="Microsoft 365 (OAuth2)" Tag="Microsoft365"/>
-            <ComboBoxItem Content="Custom IMAP (Basic Auth)" Tag="CustomImap"/>
+        <TextBlock Text="Email Provider:" FontWeight="SemiBold" />
+        <ComboBox x:Name="ComboProvider" Margin="0,5,0,15" Height="25"
+                  SelectionChanged="ComboProvider_SelectionChanged">
+            <ComboBoxItem Content="Microsoft 365 (OAuth2)" Tag="Microsoft365" />
+            <ComboBoxItem Content="Custom IMAP (Basic Auth)" Tag="CustomImap" />
         </ComboBox>
 
-        <TextBlock Text="IMAP Server:" FontWeight="SemiBold"/>
-        <TextBox x:Name="TxtServer" Margin="0,5,0,15" Padding="5" Height="25"/>
+        <TextBlock Text="IMAP Server:" FontWeight="SemiBold" />
+        <TextBox x:Name="TxtServer" Margin="0,5,0,15" Padding="5" Height="25" />
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
             <StackPanel Width="100" Margin="0,0,20,0">
-                <TextBlock Text="Port:" FontWeight="SemiBold"/>
-                <TextBox x:Name="TxtPort" Margin="0,5,0,0" Padding="5" Height="25"/>
+                <TextBlock Text="Port:" FontWeight="SemiBold" />
+                <TextBox x:Name="TxtPort" Margin="0,5,0,0" Padding="5" Height="25" />
             </StackPanel>
-            <CheckBox x:Name="ChkUseSsl" Content="Requires SSL/TLS" VerticalAlignment="Bottom" Margin="0,0,0,5" FontWeight="SemiBold"/>
+            <CheckBox x:Name="ChkUseSsl" Content="Requires SSL/TLS" VerticalAlignment="Bottom" Margin="0,0,0,5"
+                      FontWeight="SemiBold" />
         </StackPanel>
 
-        <TextBlock Text="Email Address:" FontWeight="SemiBold"/>
-        <TextBox x:Name="TxtEmail" Margin="0,5,0,15" Padding="5" Height="25"/>
+        <TextBlock Text="Email Address:" FontWeight="SemiBold" />
+        <TextBox x:Name="TxtEmail" Margin="0,5,0,15" Padding="5" Height="25" />
 
         <StackPanel x:Name="PanelBasicAuth" Visibility="Collapsed">
-            <TextBlock Text="App Password:" FontWeight="SemiBold"/>
-            <PasswordBox x:Name="TxtPassword" Margin="0,5,0,25" Padding="5" Height="25"/>
+            <TextBlock Text="App Password:" FontWeight="SemiBold" />
+            <PasswordBox x:Name="TxtPassword" Margin="0,5,0,25" Padding="5" Height="25" />
         </StackPanel>
 
         <StackPanel x:Name="PanelModernAuth" Margin="0,0,0,25">
-            <TextBlock Text="Authentication:" FontWeight="SemiBold"/>
-            <Button x:Name="BtnSignInM365" Content="Sign in with Microsoft" Height="30" Margin="0,5,0,0" Click="BtnSignInM365_Click"/>
-            <TextBlock x:Name="TxtTokenStatus" Text="Not Authenticated" Foreground="#FF4444" Margin="0,5,0,0" FontStyle="Italic"/>
+            <TextBlock Text="Authentication:" FontWeight="SemiBold" />
+            <Button x:Name="BtnSignInM365" Content="Sign in with Microsoft" Height="30" Margin="0,5,0,0"
+                    Click="BtnSignInM365_Click" />
+            <TextBlock x:Name="TxtTokenStatus" Text="Not Authenticated" Foreground="#FF4444" Margin="0,5,0,0"
+                       FontStyle="Italic" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Cancel" Width="80" Height="30" Margin="0,0,10,0" Click="BtnCancel_Click"/>
-            <Button Content="Save Settings" Width="120" Height="30" Click="BtnSave_Click"/>
+            <Button Content="Cancel" Width="80" Height="30" Margin="0,0,10,0" Click="BtnCancel_Click" />
+            <Button Content="Save Settings" Width="120" Height="30" Click="BtnSave_Click" />
         </StackPanel>
     </StackPanel>
 </Window>

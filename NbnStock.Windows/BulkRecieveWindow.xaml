@@ -8,30 +8,35 @@
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="New Delivery Batch" FontSize="22" FontWeight="Bold" Margin="0,0,0,15"/>
+        <TextBlock Grid.Row="0" Text="New Delivery Batch" FontSize="22" FontWeight="Bold" Margin="0,0,0,15" />
 
-        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10" Margin="0,0,0,15" Background="{DynamicResource ControlBackgroundBrush}">
+        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10"
+                Margin="0,0,0,15" Background="{DynamicResource ControlBackgroundBrush}">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
-                <TextBlock Text="Select Item:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <ComboBox x:Name="ComboItems" Width="250" Height="30" DisplayMemberPath="Name" SelectionChanged="ComboItems_SelectionChanged"/>
+                <TextBlock Text="Select Item:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <ComboBox x:Name="ComboItems" Width="250" Height="30" DisplayMemberPath="Name"
+                          SelectionChanged="ComboItems_SelectionChanged" />
 
                 <StackPanel x:Name="PanelConsumable" Orientation="Horizontal" Visibility="Collapsed" Margin="20,0,0,0">
-                    <TextBlock Text="Qty:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBox x:Name="InputQuantity" Width="80" Height="30" Padding="5" KeyDown="InputQuantity_KeyDown"/>
-                    <Button Content="Add to Batch" Width="100" Height="30" Margin="10,0,0,0" Click="BtnAddConsumable_Click"/>
+                    <TextBlock Text="Qty:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <TextBox x:Name="InputQuantity" Width="80" Height="30" Padding="5" KeyDown="InputQuantity_KeyDown" />
+                    <Button Content="Add to Batch" Width="100" Height="30" Margin="10,0,0,0"
+                            Click="BtnAddConsumable_Click" />
                 </StackPanel>
 
                 <StackPanel x:Name="PanelSerialised" Orientation="Horizontal" Visibility="Collapsed" Margin="20,0,0,0">
-                    <TextBlock Text="Scan Barcode:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold" Foreground="#4DA6FF"/>
-                    <TextBox x:Name="InputScanner" Width="200" Height="30" Padding="5" KeyDown="InputScanner_KeyDown"/>
-                    <TextBlock Text="(Press Enter or Scan)" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="Gray"/>
+                    <TextBlock Text="Scan Barcode:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold"
+                               Foreground="#4DA6FF" />
+                    <TextBox x:Name="InputScanner" Width="200" Height="30" Padding="5" KeyDown="InputScanner_KeyDown" />
+                    <TextBlock Text="(Press Enter or Scan)" VerticalAlignment="Center" Margin="10,0,0,0"
+                               Foreground="Gray" />
                 </StackPanel>
 
             </StackPanel>
@@ -54,27 +59,28 @@
 
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="{DynamicResource DataGridHeaderBackgroundBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource DataGridHeaderTextBrush}"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource DataGridGridLineBrush}"/>
-                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                    <Setter Property="Padding" Value="8,5"/>
+                    <Setter Property="Background" Value="{DynamicResource DataGridHeaderBackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource DataGridHeaderTextBrush}" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource DataGridGridLineBrush}" />
+                    <Setter Property="BorderThickness" Value="0,0,1,1" />
+                    <Setter Property="Padding" Value="8,5" />
                 </Style>
             </DataGrid.ColumnHeaderStyle>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Item Code" Binding="{Binding ItemCode}" Width="120"/>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80"/>
-                <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="250"/>
+                <DataGridTextColumn Header="Item Code" Binding="{Binding ItemCode}" Width="120" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80" />
+                <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="250" />
             </DataGrid.Columns>
         </DataGrid>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <TextBlock x:Name="TxtTotalCount" Text="Total Items in Batch: 0" VerticalAlignment="Center" Margin="0,0,20,0" FontWeight="Bold"/>
-            <Button Content="Clear Batch" Width="100" Height="30" Margin="0,0,10,0" Click="BtnClear_Click"/>
-            <Button Content="Commit to Inventory" Width="140" Height="30" Click="BtnCommit_Click"/>
+            <TextBlock x:Name="TxtTotalCount" Text="Total Items in Batch: 0" VerticalAlignment="Center"
+                       Margin="0,0,20,0" FontWeight="Bold" />
+            <Button Content="Clear Batch" Width="100" Height="30" Margin="0,0,10,0" Click="BtnClear_Click" />
+            <Button Content="Commit to Inventory" Width="140" Height="30" Click="BtnCommit_Click" />
         </StackPanel>
     </Grid>
 </Window>

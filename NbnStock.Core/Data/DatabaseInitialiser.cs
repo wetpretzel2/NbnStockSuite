@@ -1,32 +1,27 @@
-﻿using System;
-using Microsoft.Data.Sqlite;
-using System.IO;
+﻿using Microsoft.Data.Sqlite;
 
-namespace NbnStock.Core.Data
+namespace NbnStock.Core.Data;
+
+public static class DatabaseInitialiser
 {
-    public static class DatabaseInitialiser
+    public static string DatabasePath { get; private set; }
+
+    public static void Initialise()
     {
-        public static string DatabasePath { get; private set; }
+        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var appFolderPath = Path.Combine(appDataPath, "NbnStock");
+        var databaseFilePath = Path.Combine(appFolderPath, "NbnStock.db");
+        DatabasePath = databaseFilePath;
 
-        public static void Initialise()
+        if (!Directory.Exists(appFolderPath)) Directory.CreateDirectory(appFolderPath);
+
+        var connectionString = $"Data Source={databaseFilePath}";
+        using (var connection = new SqliteConnection(connectionString))
         {
-            string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string appFolderPath = Path.Combine(appDataPath, "NbnStock");
-            string databaseFilePath = Path.Combine(appFolderPath, "NbnStock.db");
-            DatabasePath = databaseFilePath;
+            connection.Open();
 
-            if (!Directory.Exists(appFolderPath))
-            {
-                Directory.CreateDirectory(appFolderPath);
-            }
-
-            string connectionString = $"Data Source={databaseFilePath}";
-            using (var connection = new SqliteConnection(connectionString))
-            {
-                connection.Open();
-
-                // 1. Create Tables
-                string createTableSql = @"
+            // 1. Create Tables
+            var createTableSql = @"
                     CREATE TABLE IF NOT EXISTS StockItems (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         ItemCode TEXT NOT NULL UNIQUE,
@@ -41,7 +36,7 @@ namespace NbnStock.Core.Data
                         LastUpdatedUtc TEXT NOT NULL);
                 ";
 
-                string createSerialisedUnitsTableSql = @"
+            var createSerialisedUnitsTableSql = @"
                     CREATE TABLE IF NOT EXISTS SerialisedUnits (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         StockItemId INTEGER NOT NULL,
@@ -53,33 +48,34 @@ namespace NbnStock.Core.Data
                     );
                 ";
 
-                using (var command = new SqliteCommand(createTableSql, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-                using (var command = new SqliteCommand(createSerialisedUnitsTableSql, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-
-                // 2. Seed Default Data 
-                SeedDefaultStockItems(connection);
-
-                // 3. Clean up any existing 'S' prefixes from earlier scans
-                ScrubExistingSerialNumbers(connection);
+            using (var command = new SqliteCommand(createTableSql, connection))
+            {
+                command.ExecuteNonQuery();
             }
+
+            using (var command = new SqliteCommand(createSerialisedUnitsTableSql, connection))
+            {
+                command.ExecuteNonQuery();
+            }
+
+            // 2. Seed Default Data 
+            SeedDefaultStockItems(connection);
+
+            // 3. Clean up any existing 'S' prefixes from earlier scans
+            ScrubExistingSerialNumbers(connection);
+        }
+    }
+
+    private static void SeedDefaultStockItems(SqliteConnection connection)
+    {
+        var checkSql = "SELECT COUNT(*) FROM StockItems";
+        using (var command = new SqliteCommand(checkSql, connection))
+        {
+            var count = (long)command.ExecuteScalar();
+            if (count > 0) return;
         }
 
-        private static void SeedDefaultStockItems(SqliteConnection connection)
-        {
-            string checkSql = "SELECT COUNT(*) FROM StockItems";
-            using (var command = new SqliteCommand(checkSql, connection))
-            {
-                long count = (long)command.ExecuteScalar();
-                if (count > 0) return;
-            }
-
-            string seedSql = @"
+        var seedSql = @"
                 INSERT OR IGNORE INTO StockItems (ItemCode, Name, Category, Quantity, Unit, MinimumStock, IsSerialised, SupplyType, LastUpdatedUtc) VALUES 
                 ('NBN-ODU', 'Outdoor Unit (ODU)', 'Hardware', 0, 'Each', 5, 1, 'NbnSupplied', datetime('now')),
                 ('NBN-IDU', 'Indoor Unit (IDU)', 'Hardware', 0, 'Each', 5, 1, 'NbnSupplied', datetime('now')),
@@ -98,22 +94,21 @@ namespace NbnStock.Core.Data
                 ('TECH-FIT', 'Conduit Fittings', 'Consumables', 0, 'Each', 20, 0, 'TechSupplied', datetime('now'));
             ";
 
-            using (var command = new SqliteCommand(seedSql, connection))
-            {
-                command.ExecuteNonQuery();
-            }
-        }
-
-        private static void ScrubExistingSerialNumbers(SqliteConnection connection)
+        using (var command = new SqliteCommand(seedSql, connection))
         {
-            string sql = @"UPDATE SerialisedUnits 
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void ScrubExistingSerialNumbers(SqliteConnection connection)
+    {
+        var sql = @"UPDATE SerialisedUnits 
                            SET SerialNumber = SUBSTR(SerialNumber, 2) 
                            WHERE SerialNumber LIKE 'S%';";
 
-            using (var command = new SqliteCommand(sql, connection))
-            {
-                command.ExecuteNonQuery();
-            }
+        using (var command = new SqliteCommand(sql, connection))
+        {
+            command.ExecuteNonQuery();
         }
     }
 }

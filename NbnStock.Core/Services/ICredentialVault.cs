@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace NbnStock.Core.Services;
 
-namespace NbnStock.Core.Services
+public interface ICredentialVault
 {
-    public interface ICredentialVault
-    {
-        string Encrypt(string plainText);
-        string Decrypt(string cipherText);
-    }
+    string Encrypt(string plainText);
+    string Decrypt(string cipherText);
 }
-

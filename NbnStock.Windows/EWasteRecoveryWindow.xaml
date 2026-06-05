@@ -8,38 +8,41 @@
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="Bulk E-Waste Scanning" FontSize="22" FontWeight="Bold" Margin="0,0,0,5"/>
+            <TextBlock Text="Bulk E-Waste Scanning" FontSize="22" FontWeight="Bold" Margin="0,0,0,5" />
             <TextBlock Text="Scan units below to stage them for e-waste recovery."
-                       Foreground="{DynamicResource ResourceKey=SecondaryTextBrush}" Margin="0,0,0,15"/>
+                       Foreground="{DynamicResource ResourceKey=SecondaryTextBrush}" Margin="0,0,0,15" />
 
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Legacy Type (If not in DB):" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock Text="Legacy Type (If not in DB):" VerticalAlignment="Center" Margin="0,0,10,0"
+                           FontSize="14" FontWeight="SemiBold" />
                 <ComboBox x:Name="ComboLegacyType" Width="200" Height="30" DisplayMemberPath="Name" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Scan Barcode:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold"/>
-                <TextBox x:Name="InputScanner" Width="350" Height="30" FontSize="16" VerticalContentAlignment="Center" Padding="5,0" KeyDown="InputScanner_KeyDown"/>
+                <TextBlock Text="Scan Barcode:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14"
+                           FontWeight="SemiBold" />
+                <TextBox x:Name="InputScanner" Width="350" Height="30" FontSize="16" VerticalContentAlignment="Center"
+                         Padding="5,0" KeyDown="InputScanner_KeyDown" />
             </StackPanel>
         </StackPanel>
 
-        <DataGrid x:Name="BatchDataGrid" 
-                  Grid.Row="1" 
-                  AutoGenerateColumns="False" 
-                  IsReadOnly="True" 
+        <DataGrid x:Name="BatchDataGrid"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
-                  Background="{DynamicResource ResourceKey=DataGridBackgroundBrush}" 
-                  RowBackground="{DynamicResource ResourceKey=DataGridRowBackgroundBrush}" 
+                  Background="{DynamicResource ResourceKey=DataGridBackgroundBrush}"
+                  RowBackground="{DynamicResource ResourceKey=DataGridRowBackgroundBrush}"
                   AlternatingRowBackground="{DynamicResource ResourceKey=DataGridAlternateRowBrush}"
                   Foreground="{DynamicResource ResourceKey=PrimaryTextBrush}"
-                  GridLinesVisibility="All" 
-                  BorderBrush="{DynamicResource ResourceKey=BorderBrush}" 
+                  GridLinesVisibility="All"
+                  BorderBrush="{DynamicResource ResourceKey=BorderBrush}"
                   BorderThickness="1"
                   Margin="0,0,0,15">
 
@@ -61,9 +64,10 @@
         </DataGrid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <TextBlock x:Name="TxtTotalCount" Text="Total Units: 0" VerticalAlignment="Center" Margin="0,0,20,0" FontWeight="Bold"/>
-            <Button Content="Clear Batch" Width="100" Height="30" Margin="0,0,10,0" Click="BtnClear_Click"/>
-            <Button Content="Commit to E-Waste" Width="140" Height="30" Click="BtnCommit_Click"/>
+            <TextBlock x:Name="TxtTotalCount" Text="Total Units: 0" VerticalAlignment="Center" Margin="0,0,20,0"
+                       FontWeight="Bold" />
+            <Button Content="Clear Batch" Width="100" Height="30" Margin="0,0,10,0" Click="BtnClear_Click" />
+            <Button Content="Commit to E-Waste" Width="140" Height="30" Click="BtnCommit_Click" />
         </StackPanel>
 
     </Grid>

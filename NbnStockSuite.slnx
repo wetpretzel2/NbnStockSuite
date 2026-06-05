@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="NbnStock.Core/NbnStock.Core.csproj" />
-  <Project Path="NbnStock.Windows/NbnStock.Windows.csproj" />
+    <Project Path="NbnStock.Core/NbnStock.Core.csproj"/>
+    <Project Path="NbnStock.Windows/NbnStock.Windows.csproj"/>
 </Solution>

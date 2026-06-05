@@ -1,14 +1,11 @@
-﻿namespace NbnStock.Core.Models
+﻿namespace NbnStock.Core.Models;
+
+public enum UnitStatus
 {
-    public enum UnitStatus
-    {
-        OnHand,
-        Installed,
-        EwastePendingSubmission,
-        EwasteAwaitingApproval,
-        ApprovedForDisposal,
-        Disposed
-
-    }
+    OnHand,
+    Installed,
+    EwastePendingSubmission,
+    EwasteAwaitingApproval,
+    ApprovedForDisposal,
+    Disposed
 }
-

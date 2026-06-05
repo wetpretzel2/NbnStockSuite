@@ -8,49 +8,55 @@
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock x:Name="TxtItemName" Grid.Row="0" Text="Consume: [Item Name]" FontSize="20" FontWeight="Bold" Margin="0,0,0,5" TextWrapping="Wrap"/>
-        <TextBlock x:Name="TxtCurrentStock" Grid.Row="1" Text="Currently On Hand: 0" FontSize="14" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,15"/>
+        <TextBlock x:Name="TxtItemName" Grid.Row="0" Text="Consume: [Item Name]" FontSize="20" FontWeight="Bold"
+                   Margin="0,0,0,5" TextWrapping="Wrap" />
+        <TextBlock x:Name="TxtCurrentStock" Grid.Row="1" Text="Currently On Hand: 0" FontSize="14"
+                   Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,15" />
         <StackPanel x:Name="PanelConsumable" Grid.Row="2" Visibility="Collapsed">
-            <TextBlock Text="Enter quantity to consume:" Margin="0,0,0,5"/>
-            <TextBox x:Name="InputQuantity" Width="100" Height="30" HorizontalAlignment="Left" Padding="5" FontSize="16" KeyDown="InputQuantity_KeyDown"/>
+            <TextBlock Text="Enter quantity to consume:" Margin="0,0,0,5" />
+            <TextBox x:Name="InputQuantity" Width="100" Height="30" HorizontalAlignment="Left" Padding="5"
+                     FontSize="16" KeyDown="InputQuantity_KeyDown" />
         </StackPanel>
 
         <Grid x:Name="PanelSerialised" Grid.Row="2" Visibility="Collapsed">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-                <TextBlock Text="Scan Barcode:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold" Foreground="#4DA6FF"/>
-                <TextBox x:Name="InputScanner" Width="200" Height="30" Padding="5" KeyDown="InputScanner_KeyDown"/>
-                <TextBlock Text="(Press Enter or Scan)" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="Scan Barcode:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold"
+                           Foreground="#4DA6FF" />
+                <TextBox x:Name="InputScanner" Width="200" Height="30" Padding="5" KeyDown="InputScanner_KeyDown" />
+                <TextBlock Text="(Press Enter or Scan)" VerticalAlignment="Center" Margin="10,0,0,0"
+                           Foreground="{DynamicResource PrimaryTextBrush}" />
             </StackPanel>
 
-            <TextBlock Grid.Row="1" x:Name="TxtScanCount" Text="Scanned units ready to consume: 0" Margin="0,0,0,5" FontWeight="SemiBold"/>
+            <TextBlock Grid.Row="1" x:Name="TxtScanCount" Text="Scanned units ready to consume: 0" Margin="0,0,0,5"
+                       FontWeight="SemiBold" />
 
-            <ListBox x:Name="ListScannedSerials" Grid.Row="2" 
-                     Background="{DynamicResource DataGridBackgroundBrush}" 
+            <ListBox x:Name="ListScannedSerials" Grid.Row="2"
+                     Background="{DynamicResource DataGridBackgroundBrush}"
                      Foreground="{DynamicResource PrimaryTextBrush}"
                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="5">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding SerialNumber}" FontSize="14" Padding="2"/>
+                        <TextBlock Text="{Binding SerialNumber}" FontSize="14" Padding="2" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Cancel" Width="80" Height="30" Margin="0,0,10,0" Click="BtnCancel_Click"/>
-            <Button x:Name="BtnConfirm" Content="Confirm Consumption" Width="150" Height="30" Click="BtnConfirm_Click"/>
+            <Button Content="Cancel" Width="80" Height="30" Margin="0,0,10,0" Click="BtnCancel_Click" />
+            <Button x:Name="BtnConfirm" Content="Confirm Consumption" Width="150" Height="30" Click="BtnConfirm_Click" />
         </StackPanel>
     </Grid>
 </Window>

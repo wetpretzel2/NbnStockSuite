@@ -1,185 +1,174 @@
 ﻿using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
-using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 
-namespace NbnStock.Windows
+namespace NbnStock.Windows;
+
+public partial class BulkReceiveWindow : Window
 {
-    public partial class BulkReceiveWindow : Window
+    private readonly SerialisedUnitRepository _serialisedRepo; // Added this!
+    private readonly StockRepository _stockRepo;
+
+    public BulkReceiveWindow()
     {
-        private readonly StockRepository _stockRepo;
-        private readonly SerialisedUnitRepository _serialisedRepo; // Added this!
+        InitializeComponent();
+        _stockRepo = new StockRepository();
+        _serialisedRepo = new SerialisedUnitRepository(); // Initialised this!
+        PendingBatch = new ObservableCollection<PendingStockEntry>();
 
-        public ObservableCollection<PendingStockEntry> PendingBatch { get; set; }
+        BatchDataGrid.ItemsSource = PendingBatch;
+        LoadDropdownItems();
+    }
 
-        public BulkReceiveWindow()
+    public ObservableCollection<PendingStockEntry> PendingBatch { get; set; }
+
+    private void LoadDropdownItems()
+    {
+        var rawItems = _stockRepo.GetAllStockItems();
+
+        var sortedItems = rawItems
+            .OrderByDescending(i => i.IsSerialised)
+            .ThenBy(i => i.SupplyType.ToString() == "TechSupplied" ? 1 : 0)
+            .ThenBy(i => GetCategorySortWeight(i.Category))
+            .ThenBy(i => i.Name)
+            .ToList();
+
+        ComboItems.ItemsSource = sortedItems;
+    }
+
+    private int GetCategorySortWeight(string category)
+    {
+        switch (category?.ToLower())
         {
-            InitializeComponent();
-            _stockRepo = new StockRepository();
-            _serialisedRepo = new SerialisedUnitRepository(); // Initialised this!
-            PendingBatch = new ObservableCollection<PendingStockEntry>();
-
-            BatchDataGrid.ItemsSource = PendingBatch;
-            LoadDropdownItems();
+            case "mounts": return 1;
+            case "cabling": return 2;
+            case "hardware": return 3;
+            default: return 4;
         }
+    }
 
-        private void LoadDropdownItems()
+    private void ComboItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedItem = ComboItems.SelectedItem as StockItem;
+        if (selectedItem == null) return;
+
+        if (selectedItem.IsSerialised)
         {
-            var rawItems = _stockRepo.GetAllStockItems();
-
-            var sortedItems = rawItems
-                .OrderByDescending(i => i.IsSerialised)
-                .ThenBy(i => i.SupplyType.ToString() == "TechSupplied" ? 1 : 0)
-                .ThenBy(i => GetCategorySortWeight(i.Category))
-                .ThenBy(i => i.Name)
-                .ToList();
-
-            ComboItems.ItemsSource = sortedItems;
+            PanelConsumable.Visibility = Visibility.Collapsed;
+            PanelSerialised.Visibility = Visibility.Visible;
+            InputScanner.Focus();
         }
-
-        private int GetCategorySortWeight(string category)
+        else
         {
-            switch (category?.ToLower())
-            {
-                case "mounts": return 1;
-                case "cabling": return 2;
-                case "hardware": return 3;
-                default: return 4;
-            }
+            PanelSerialised.Visibility = Visibility.Collapsed;
+            PanelConsumable.Visibility = Visibility.Visible;
+            InputQuantity.Focus();
         }
+    }
 
-        private void ComboItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void InputScanner_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Return || e.Key == Key.Enter)
         {
             var selectedItem = ComboItems.SelectedItem as StockItem;
-            if (selectedItem == null) return;
+            string serial = InputScanner.Text.Trim();
 
-            if (selectedItem.IsSerialised)
-            {
-                PanelConsumable.Visibility = Visibility.Collapsed;
-                PanelSerialised.Visibility = Visibility.Visible;
-                InputScanner.Focus();
-            }
-            else
-            {
-                PanelSerialised.Visibility = Visibility.Collapsed;
-                PanelConsumable.Visibility = Visibility.Visible;
-                InputQuantity.Focus();
-            }
-        }
+            // NEW: Strip the leading 'S'
+            if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase)) serial = serial.Substring(1);
 
-        private void InputScanner_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Return || e.Key == Key.Enter)
+            if (selectedItem != null && !string.IsNullOrEmpty(serial))
             {
-                var selectedItem = ComboItems.SelectedItem as StockItem;
-                string serial = InputScanner.Text.Trim();
-
-                // NEW: Strip the leading 'S'
-                if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase))
+                if (PendingBatch.Any(p => p.SerialNumber == serial))
                 {
-                    serial = serial.Substring(1);
+                    MessageBox.Show("This serial is already in your current batch!", "Duplicate Scan",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    InputScanner.Clear();
+                    return;
                 }
 
-                if (selectedItem != null && !string.IsNullOrEmpty(serial))
-                {
-                    if (PendingBatch.Any(p => p.SerialNumber == serial))
-                    {
-                        MessageBox.Show("This serial is already in your current batch!", "Duplicate Scan", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        InputScanner.Clear();
-                        return;
-                    }
-
-                    PendingBatch.Add(new PendingStockEntry
-                    {
-                        StockItemId = selectedItem.Id,
-                        ItemCode = selectedItem.ItemCode,
-                        Name = selectedItem.Name,
-                        IsSerialised = true,
-                        Quantity = 1,
-                        SerialNumber = serial
-                    });
-
-                    UpdateTotalCount();
-                }
-                InputScanner.Clear();
-            }
-        }
-
-        private void InputQuantity_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Return || e.Key == Key.Enter)
-            {
-                BtnAddConsumable_Click(sender, e);
-            }
-        }
-
-        private void BtnAddConsumable_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedItem = ComboItems.SelectedItem as StockItem;
-            if (selectedItem != null && int.TryParse(InputQuantity.Text, out int qty) && qty > 0)
-            {
                 PendingBatch.Add(new PendingStockEntry
                 {
-                    StockItemId = selectedItem.Id, // Saving the DB Id!
+                    StockItemId = selectedItem.Id,
                     ItemCode = selectedItem.ItemCode,
                     Name = selectedItem.Name,
-                    IsSerialised = false,
-                    Quantity = qty,
-                    SerialNumber = "N/A"
+                    IsSerialised = true,
+                    Quantity = 1,
+                    SerialNumber = serial
                 });
 
-                InputQuantity.Clear();
                 UpdateTotalCount();
             }
-        }
 
-        private void UpdateTotalCount()
+            InputScanner.Clear();
+        }
+    }
+
+    private void InputQuantity_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Return || e.Key == Key.Enter) BtnAddConsumable_Click(sender, e);
+    }
+
+    private void BtnAddConsumable_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedItem = ComboItems.SelectedItem as StockItem;
+        if (selectedItem != null && int.TryParse(InputQuantity.Text, out int qty) && qty > 0)
         {
-            TxtTotalCount.Text = $"Total Items in Batch: {PendingBatch.Count}";
-            if (PendingBatch.Count > 0)
+            PendingBatch.Add(new PendingStockEntry
             {
-                BatchDataGrid.ScrollIntoView(PendingBatch.Last());
-            }
-        }
+                StockItemId = selectedItem.Id, // Saving the DB Id!
+                ItemCode = selectedItem.ItemCode,
+                Name = selectedItem.Name,
+                IsSerialised = false,
+                Quantity = qty,
+                SerialNumber = "N/A"
+            });
 
-        private void BtnClear_Click(object sender, RoutedEventArgs e)
-        {
-            PendingBatch.Clear();
+            InputQuantity.Clear();
             UpdateTotalCount();
         }
+    }
 
-        // THIS IS THE FIX! We are actually talking to SQLite now.
-        private void BtnCommit_Click(object sender, RoutedEventArgs e)
+    private void UpdateTotalCount()
+    {
+        TxtTotalCount.Text = $"Total Items in Batch: {PendingBatch.Count}";
+        if (PendingBatch.Count > 0) BatchDataGrid.ScrollIntoView(PendingBatch.Last());
+    }
+
+    private void BtnClear_Click(object sender, RoutedEventArgs e)
+    {
+        PendingBatch.Clear();
+        UpdateTotalCount();
+    }
+
+    // THIS IS THE FIX! We are actually talking to SQLite now.
+    private void BtnCommit_Click(object sender, RoutedEventArgs e)
+    {
+        if (PendingBatch.Count == 0) return;
+
+        try
         {
-            if (PendingBatch.Count == 0) return;
-
-            try
-            {
-                foreach (var entry in PendingBatch)
+            foreach (var entry in PendingBatch)
+                if (entry.IsSerialised)
                 {
-                    if (entry.IsSerialised)
-                    {
-                        // 1. Add the specific serial number to the Serialised table
-                        _serialisedRepo.ReceiveSerialisedUnit(entry.StockItemId, entry.SerialNumber);
-                        // 2. Add +1 to the master quantity of that item type
-                        _stockRepo.ReceiveStock(entry.StockItemId, entry.Quantity);
-                    }
-                    else
-                    {
-                        // Bulk item, just add the quantity to the master table
-                        _stockRepo.ReceiveStock(entry.StockItemId, entry.Quantity);
-                    }
+                    // 1. Add the specific serial number to the Serialised table
+                    _serialisedRepo.ReceiveSerialisedUnit(entry.StockItemId, entry.SerialNumber);
+                    // 2. Add +1 to the master quantity of that item type
+                    _stockRepo.ReceiveStock(entry.StockItemId, entry.Quantity);
+                }
+                else
+                {
+                    // Bulk item, just add the quantity to the master table
+                    _stockRepo.ReceiveStock(entry.StockItemId, entry.Quantity);
                 }
 
-                MessageBox.Show($"Successfully committed {PendingBatch.Count} entries to inventory.", "Batch Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-                this.DialogResult = true; // Closes window and tells MainWindow to refresh
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Database Error during commit: {ex.Message}\n\nCheck if you scanned a duplicate serial number that is already in the database.", "Commit Failed", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            MessageBox.Show($"Successfully committed {PendingBatch.Count} entries to inventory.", "Batch Complete",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            this.DialogResult = true; // Closes window and tells MainWindow to refresh
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Database Error during commit: {ex.Message}\n\nCheck if you scanned a duplicate serial number that is already in the database.",
+                "Commit Failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

@@ -1,8 +1,7 @@
-﻿namespace NbnStock.Core.Models
+﻿namespace NbnStock.Core.Models;
+
+public enum SupplyType
 {
-    public enum SupplyType
-    {
-        NbnSupplied,
-        TechSupplied
-    }
+    NbnSupplied,
+    TechSupplied
 }

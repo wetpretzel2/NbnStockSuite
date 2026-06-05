@@ -11,10 +11,10 @@
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -22,52 +22,52 @@
                    FontSize="22"
                    FontWeight="Bold"
                    Margin="0,0,0,5"
-                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                   Foreground="{DynamicResource PrimaryTextBrush}" />
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,5">
-            <Button x:Name="BtnReceiveStock" 
-                    Content="Receive Stock" 
-                    Width="120" Height="30" 
+            <Button x:Name="BtnReceiveStock"
+                    Content="Receive Stock"
+                    Width="120" Height="30"
                     Margin="0,0,10,0"
-                    Click="BtnReceiveStock_Click"/>
+                    Click="BtnReceiveStock_Click" />
 
-            <Button x:Name="BtnConsumeStock" 
-                    Content="Consume Stock" 
-                    Width="120" Height="30" 
-                    Click="BtnConsumeStock_Click"/>
+            <Button x:Name="BtnConsumeStock"
+                    Content="Consume Stock"
+                    Width="120" Height="30"
+                    Click="BtnConsumeStock_Click" />
 
-            <Button x:Name="BtnRefresh" 
-                    Content="Refresh List" 
-                    Width="100" Height="30" 
+            <Button x:Name="BtnRefresh"
+                    Content="Refresh List"
+                    Width="100" Height="30"
                     Margin="20,0,0,0"
-                    Click="BtnRefresh_Click"/>
-            <Button x:Name="BtnAddCustomItem" 
-                    Content="Add Custom Item" 
-                    Width="120" Height="30" 
+                    Click="BtnRefresh_Click" />
+            <Button x:Name="BtnAddCustomItem"
+                    Content="Add Custom Item"
+                    Width="120" Height="30"
                     Margin="20,0,0,0"
-                    Click="BtnAddCustomItem_Click"/>
-            <Button x:Name="BtnEWasteDashboard" 
-                    Content="Manage E-Waste" 
-                    Width="120" Height="30" 
+                    Click="BtnAddCustomItem_Click" />
+            <Button x:Name="BtnEWasteDashboard"
+                    Content="Manage E-Waste"
+                    Width="120" Height="30"
                     Margin="20,0,0,0"
-                    Click="BtnEWasteDashboard_Click"/>
-            <Button x:Name="BtnExportReport" 
-                Content="Export Monthly Report" 
-                Width="150" Height="30" 
-                Margin="20,0,0,0"
-                Click="BtnExportReport_Click"/>
-            <Button x:Name="BtnSyncJobCards" 
-                    Content="Sync Job Cards" 
-                    Width="120" Height="30" 
+                    Click="BtnEWasteDashboard_Click" />
+            <Button x:Name="BtnExportReport"
+                    Content="Export Monthly Report"
+                    Width="150" Height="30"
                     Margin="20,0,0,0"
-                    Click="BtnSyncJobCards_Click"/>
-           
+                    Click="BtnExportReport_Click" />
+            <Button x:Name="BtnSyncJobCards"
+                    Content="Sync Job Cards"
+                    Width="120" Height="30"
+                    Margin="20,0,0,0"
+                    Click="BtnSyncJobCards_Click" />
 
-            <Button x:Name="BtnEmailSettings" 
-                Content="⚙️ Settings" 
-                Width="90" Height="30" 
-                Margin="10,0,0,0"
-                Click="BtnEmailSettings_Click"/>
+
+            <Button x:Name="BtnEmailSettings"
+                    Content="⚙️ Settings"
+                    Width="90" Height="30"
+                    Margin="10,0,0,0"
+                    Click="BtnEmailSettings_Click" />
         </StackPanel>
 
         <DataGrid x:Name="StockItemsDataGrid"
@@ -90,21 +90,21 @@
 
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="{DynamicResource DataGridHeaderBackgroundBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource DataGridHeaderTextBrush}"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource DataGridGridLineBrush}"/>
-                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                    <Setter Property="Padding" Value="8,5"/>
+                    <Setter Property="Background" Value="{DynamicResource DataGridHeaderBackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource DataGridHeaderTextBrush}" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource DataGridGridLineBrush}" />
+                    <Setter Property="BorderThickness" Value="0,0,1,1" />
+                    <Setter Property="Padding" Value="8,5" />
                 </Style>
             </DataGrid.ColumnHeaderStyle>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Item Code" Binding="{Binding ItemCode}" Width="150"/>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="100"/>
-                <DataGridTextColumn Header="Supply Type" Binding="{Binding SupplyType}" Width="140"/>
-                <DataGridCheckBoxColumn Header="Serialised" Binding="{Binding IsSerialised}" Width="100"/>
+                <DataGridTextColumn Header="Item Code" Binding="{Binding ItemCode}" Width="150" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="100" />
+                <DataGridTextColumn Header="Supply Type" Binding="{Binding SupplyType}" Width="140" />
+                <DataGridCheckBoxColumn Header="Serialised" Binding="{Binding IsSerialised}" Width="100" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
