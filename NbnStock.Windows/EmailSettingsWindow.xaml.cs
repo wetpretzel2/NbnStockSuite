@@ -1,4 +1,12 @@
-﻿using NbnStock.Core.Services;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Microsoft.Identity.Client;
+using NbnStock.Core.Services;
 using NbnStock.Windows.Services;
 
 namespace NbnStock.Windows;

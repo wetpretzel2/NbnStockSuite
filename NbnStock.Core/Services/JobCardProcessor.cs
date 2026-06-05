@@ -1,4 +1,7 @@
-﻿using NbnStock.Core.Models;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;

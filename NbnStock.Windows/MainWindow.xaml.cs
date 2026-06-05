@@ -1,4 +1,9 @@
-﻿using NbnStock.Core.Models;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 using NbnStock.Core.Services;
 using NbnStock.Windows.Services;

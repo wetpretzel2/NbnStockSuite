@@ -1,4 +1,7 @@
-﻿using NbnStock.Core.Services;
+﻿using System;
+using System.Security.Cryptography;
+using System.Text;
+using NbnStock.Core.Services;
 
 namespace NbnStock.Windows.Services;
 

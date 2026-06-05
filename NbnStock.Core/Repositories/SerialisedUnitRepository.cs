@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Data.Sqlite;
 using NbnStock.Core.Data;
 using NbnStock.Core.Models;
 

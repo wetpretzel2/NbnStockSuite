@@ -1,4 +1,6 @@
-﻿using NbnStock.Core.Models;
+﻿using System.Windows;
+using System.Windows.Controls;
+using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 
 namespace NbnStock.Windows;

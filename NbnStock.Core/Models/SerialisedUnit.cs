@@ -1,4 +1,6 @@
-﻿namespace NbnStock.Core.Models;
+﻿using System;
+
+namespace NbnStock.Core.Models;
 
 public class SerialisedUnit
 {

@@ -1,4 +1,5 @@
 ﻿namespace NbnStock.Core.Models;
+using DateTime = System.DateTime;
 
 public class StockItem
 {

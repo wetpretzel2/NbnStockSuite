@@ -1,4 +1,6 @@
-﻿namespace NbnStock.Core.Services;
+﻿using System;
+
+namespace NbnStock.Core.Services;
 
 public class JobCardParser
 {

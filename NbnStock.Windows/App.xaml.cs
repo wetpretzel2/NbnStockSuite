@@ -1,4 +1,8 @@
 ﻿using NbnStock.Core.Data;
+using Microsoft.Win32;
+using NbnStock.Core.Data;
+using System;
+using System.Windows;
 
 namespace NbnStock.Windows;
 

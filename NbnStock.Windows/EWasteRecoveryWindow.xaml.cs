@@ -1,4 +1,7 @@
-﻿using NbnStock.Core.Models;
+﻿using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Input;
+using NbnStock.Core.Models;
 using NbnStock.Core.Repositories;
 
 namespace NbnStock.Windows;
