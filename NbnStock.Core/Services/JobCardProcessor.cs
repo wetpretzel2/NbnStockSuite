@@ -1,7 +1,8 @@
 ﻿using NbnStock.Core.Models;
-using NbnStock.Core.Repositories;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
+using Microsoft.Data.Sqlite;
+using NbnStock.Core.Data;
 
 namespace NbnStock.Core.Services;
 
@@ -9,15 +10,11 @@ public class JobCardProcessor
 {
     private readonly EmailHookService _emailService;
     private readonly JobCardParser _parser;
-    private readonly SerialisedUnitRepository _serialisedRepo;
-    private readonly StockRepository _stockRepo;
 
     public JobCardProcessor(EmailConfig emailConfig)
     {
         _emailService = new EmailHookService(emailConfig);
         _parser = new JobCardParser();
-        _stockRepo = new StockRepository();
-        _serialisedRepo = new SerialisedUnitRepository();
     }
 
     /// <summary>
@@ -75,70 +72,204 @@ public class JobCardProcessor
 
     private void ApplyToDatabase(ParsedJobData data)
     {
-        // --- 1. Deduct Consumables (Wall Plates & Mounts) ---
+        var connectionString = $"Data Source={DatabaseInitialiser.DatabasePath}";
+
+        using var connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        using var transaction = connection.BeginTransaction();
+
+        try
+        {
+            ApplyToDatabase(data, connection, transaction);
+            transaction.Commit();
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+    private void ApplyToDatabase(ParsedJobData data, SqliteConnection connection, SqliteTransaction transaction)
+    {
         if (data.WallPlatesConsumed > 0 && !string.IsNullOrEmpty(data.WallPlateType))
         {
-            var wallPlate = _stockRepo.GetStockItemByName(data.WallPlateType);
-            if (wallPlate != null) _stockRepo.ConsumeStock(wallPlate.Id, data.WallPlatesConsumed);
+            var wallPlate = GetStockItemIdByNameOrThrow(connection, transaction, data.WallPlateType);
+            ConsumeStock(connection, transaction, wallPlate, data.WallPlatesConsumed);
         }
 
         if (data.MountsConsumed > 0 && !string.IsNullOrEmpty(data.MountType))
         {
-            var mount = _stockRepo.GetStockItemByName(data.MountType);
-            if (mount != null) _stockRepo.ConsumeStock(mount.Id, data.MountsConsumed);
+            var mount = GetStockItemIdByNameOrThrow(connection, transaction, data.MountType);
+            ConsumeStock(connection, transaction, mount, data.MountsConsumed);
         }
 
-        // --- 2. Mark Installed Units (STRICT INVENTORY MATCH REQUIRED) ---
         if (!string.IsNullOrEmpty(data.InstalledOdu))
         {
-            MarkInstalledOrThrow(data.InstalledOdu, "ODU");
+            MarkInstalledOrThrow(connection, transaction, data.InstalledOdu, "ODU");
 
-            // --- AUTO-CONSUME BRACKET ---
-            // Every time an ODU is installed, automatically deduct 1 ODU Mounting Bracket
-            var bracket = _stockRepo.GetStockItemByName("ODU Mounting Bracket");
-            if (bracket == null)
-                throw new Exception("Stock item 'ODU Mounting Bracket' was not found in the database.");
-
-            _stockRepo.ConsumeStock(bracket.Id, 1);
+            var bracket = GetStockItemIdByNameOrThrow(connection, transaction, "ODU Mounting Bracket");
+            ConsumeStock(connection, transaction, bracket, 1);
         }
 
-        if (!string.IsNullOrEmpty(data.InstalledIdu)) MarkInstalledOrThrow(data.InstalledIdu, "IDU");
+        if (!string.IsNullOrEmpty(data.InstalledIdu))
+            MarkInstalledOrThrow(connection, transaction, data.InstalledIdu, "IDU");
 
-        // --- 3. Stage E-Waste Units ---
-        ProcessEwaste(data.RemovedOdu, "Outdoor Unit (ODU)");
-        ProcessEwaste(data.RemovedIdu, "Indoor Unit (IDU)");
+        ProcessEwaste(connection, transaction, data.RemovedOdu, "Outdoor Unit (ODU)");
+        ProcessEwaste(connection, transaction, data.RemovedIdu, "Indoor Unit (IDU)");
     }
 
-    private void MarkInstalledOrThrow(string serial, string unitType)
+    private static int GetStockItemIdByNameOrThrow(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string stockItemName)
     {
-        var unit = _serialisedRepo.GetSerialisedUnitBySerial(serial);
-        if (unit == null)
-            throw new Exception($"{unitType} Serial {serial} not found in inventory. Please receive it first.");
+        const string sql = @"
+            SELECT Id
+            FROM StockItems
+            WHERE Name = @Name;
+        ";
 
-        if (unit.Status != UnitStatus.OnHand)
-            throw new Exception($"{unitType} Serial {serial} is not currently OnHand. Current status: {unit.Status}.");
+        using var command = new SqliteCommand(sql, connection, transaction);
+        command.Parameters.AddWithValue("@Name", stockItemName);
 
-        _serialisedRepo.UpdateSerialisedUnitStatus(unit.Id, UnitStatus.Installed);
+        var result = command.ExecuteScalar();
+        if (result == null || result == DBNull.Value)
+            throw new Exception($"Stock item '{stockItemName}' was not found in the database.");
+
+        return Convert.ToInt32(result);
     }
 
-    private void ProcessEwaste(string serial, string stockItemName)
+    private static void ConsumeStock(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        int stockItemId,
+        int quantityUsed)
+    {
+        if (quantityUsed <= 0)
+            throw new Exception("Quantity used must be greater than zero.");
+
+        const string sql = @"
+            UPDATE StockItems
+            SET Quantity = Quantity - @QuantityUsed,
+                LastUpdatedUtc = @LastUpdatedUtc
+            WHERE Id = @Id
+              AND Quantity >= @QuantityUsed;
+        ";
+
+        using var command = new SqliteCommand(sql, connection, transaction);
+        command.Parameters.AddWithValue("@QuantityUsed", quantityUsed);
+        command.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
+        command.Parameters.AddWithValue("@Id", stockItemId);
+
+        var rowsAffected = command.ExecuteNonQuery();
+        if (rowsAffected != 1)
+            throw new Exception($"Insufficient stock for stock item Id {stockItemId}.");
+    }
+
+    private static void MarkInstalledOrThrow(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string serial,
+        string unitType)
+    {
+        const string selectSql = @"
+            SELECT Id, Status
+            FROM SerialisedUnits
+            WHERE SerialNumber = @SerialNumber;
+        ";
+
+        int unitId;
+        string status;
+
+        using (var selectCommand = new SqliteCommand(selectSql, connection, transaction))
+        {
+            selectCommand.Parameters.AddWithValue("@SerialNumber", serial);
+
+            using var reader = selectCommand.ExecuteReader();
+            if (!reader.Read())
+                throw new Exception($"{unitType} Serial {serial} not found in inventory. Please receive it first.");
+
+            unitId = reader.GetInt32(0);
+            status = reader.GetString(1);
+        }
+
+        if (!string.Equals(status, UnitStatus.OnHand.ToString(), StringComparison.OrdinalIgnoreCase))
+            throw new Exception($"{unitType} Serial {serial} is not currently OnHand. Current status: {status}.");
+
+        const string updateSql = @"
+            UPDATE SerialisedUnits
+            SET Status = @Status,
+                LastUpdatedUtc = @LastUpdatedUtc
+            WHERE Id = @Id;
+        ";
+
+        using var updateCommand = new SqliteCommand(updateSql, connection, transaction);
+        updateCommand.Parameters.AddWithValue("@Status", UnitStatus.Installed.ToString());
+        updateCommand.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
+        updateCommand.Parameters.AddWithValue("@Id", unitId);
+
+        updateCommand.ExecuteNonQuery();
+    }
+
+    private static void ProcessEwaste(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string serial,
+        string stockItemName)
     {
         if (string.IsNullOrWhiteSpace(serial))
             return;
 
-        var existingUnit = _serialisedRepo.GetSerialisedUnitBySerial(serial);
+        const string existingSql = @"
+            SELECT Id
+            FROM SerialisedUnits
+            WHERE SerialNumber = @SerialNumber;
+        ";
 
-        if (existingUnit != null)
+        int? existingUnitId = null;
+
+        using (var existingCommand = new SqliteCommand(existingSql, connection, transaction))
         {
-            _serialisedRepo.UpdateSerialisedUnitStatus(existingUnit.Id, UnitStatus.EwastePendingSubmission);
+            existingCommand.Parameters.AddWithValue("@SerialNumber", serial);
+            var result = existingCommand.ExecuteScalar();
+
+            if (result != null && result != DBNull.Value)
+                existingUnitId = Convert.ToInt32(result);
+        }
+
+        if (existingUnitId.HasValue)
+        {
+            const string updateSql = @"
+                UPDATE SerialisedUnits
+                SET Status = @Status,
+                    LastUpdatedUtc = @LastUpdatedUtc
+                WHERE Id = @Id;
+            ";
+
+            using var updateCommand = new SqliteCommand(updateSql, connection, transaction);
+            updateCommand.Parameters.AddWithValue("@Status", UnitStatus.EwastePendingSubmission.ToString());
+            updateCommand.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
+            updateCommand.Parameters.AddWithValue("@Id", existingUnitId.Value);
+            updateCommand.ExecuteNonQuery();
             return;
         }
 
-        var stockItem = _stockRepo.GetStockItemByName(stockItemName);
-        if (stockItem == null)
-            throw new Exception(
-                $"Stock item '{stockItemName}' was not found in the database. Cannot create e-waste record for serial {serial}.");
+        var stockItemId = GetStockItemIdByNameOrThrow(connection, transaction, stockItemName);
 
-        _serialisedRepo.AddUnitToEwaste(stockItem.Id, serial);
+        const string insertSql = @"
+            INSERT INTO SerialisedUnits
+                (StockItemId, SerialNumber, Status, Notes, LastUpdatedUtc)
+            VALUES
+                (@StockItemId, @SerialNumber, @Status, @Notes, @LastUpdatedUtc);
+        ";
+
+        using var insertCommand = new SqliteCommand(insertSql, connection, transaction);
+        insertCommand.Parameters.AddWithValue("@StockItemId", stockItemId);
+        insertCommand.Parameters.AddWithValue("@SerialNumber", serial.Trim());
+        insertCommand.Parameters.AddWithValue("@Status", UnitStatus.EwastePendingSubmission.ToString());
+        insertCommand.Parameters.AddWithValue("@Notes", "Removed from site");
+        insertCommand.Parameters.AddWithValue("@LastUpdatedUtc", DateTime.UtcNow.ToString("o"));
+        insertCommand.ExecuteNonQuery();
     }
 }
