@@ -153,10 +153,9 @@ public partial class BulkReceiveWindow : Window
             foreach (var entry in PendingBatch)
                 if (entry.IsSerialised)
                 {
-                    // 1. Add the specific serial number to the Serialised table
+                    // Serialised items are counted from SerialisedUnits where Status == OnHand.
+                    // Do not update StockItems.Quantity here, otherwise the aggregate counter can drift.
                     _serialisedRepo.ReceiveSerialisedUnit(entry.StockItemId, entry.SerialNumber);
-                    // 2. Add +1 to the master quantity of that item type
-                    _stockRepo.ReceiveStock(entry.StockItemId, entry.Quantity);
                 }
                 else
                 {
