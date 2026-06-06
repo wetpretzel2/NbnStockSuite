@@ -29,6 +29,19 @@ public class JobCardParser
             if (cableTypeUsed != null && cableTypeUsed.IndexOf("CAT6", StringComparison.OrdinalIgnoreCase) >= 0)
                 jobData.WallPlateType = "Cat 6 Wallplate";
         }
+        // Service Call / Swap jobs may consume a wallplate if clearly noted in comments
+        if (jobData.WallPlatesConsumed == 0 && IsServiceOrSwapJob(jobType))
+        {
+            var additionalInfo = ExtractValue(pdfText, "Additional Information") ?? "";
+            var complaintResolved = ExtractValue(pdfText, "Complaint Resolved") ?? "";
+            var comments = $"{additionalInfo} {complaintResolved}";
+
+            if (CommentsIndicateWallPlateUsed(comments))
+            {
+                jobData.WallPlatesConsumed = 1;
+                jobData.WallPlateType = "Cat 5e Wallplate";
+            }
+        }
 
         // 5. Consumables Logic: Mounts
         var isExistingMount = false;
