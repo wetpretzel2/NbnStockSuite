@@ -29,6 +29,7 @@ public class JobCardParser
             if (cableTypeUsed != null && cableTypeUsed.IndexOf("CAT6", StringComparison.OrdinalIgnoreCase) >= 0)
                 jobData.WallPlateType = "Cat 6 Wallplate";
         }
+
         // Service Call / Swap jobs may consume a wallplate if clearly noted in comments
         if (jobData.WallPlatesConsumed == 0 && IsServiceOrSwapJob(jobType))
         {
@@ -68,7 +69,7 @@ public class JobCardParser
         return jobData;
     }
 
-    private static bool IsServiceOrSwapJob(string jobType)
+    private static bool IsServiceOrSwapJob(string? jobType)
     {
         return ContainsIgnoreCase(jobType, "Service Call")
                || ContainsIgnoreCase(jobType, "SwapToLatest")
@@ -77,7 +78,7 @@ public class JobCardParser
                || ContainsIgnoreCase(jobType, "Swap ODU");
     }
 
-    private static string MapMountType(string mountInstalled)
+    private static string? MapMountType(string? mountInstalled)
     {
         if (string.IsNullOrWhiteSpace(mountInstalled))
             return null;
@@ -100,10 +101,33 @@ public class JobCardParser
         return null;
     }
 
-    private static bool ContainsIgnoreCase(string value, string searchText)
+    private static bool ContainsIgnoreCase(string? value, string searchText)
     {
         return !string.IsNullOrWhiteSpace(value)
                && value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private static bool CommentsIndicateWallPlateUsed(string comments)
+    {
+        if (string.IsNullOrWhiteSpace(comments))
+            return false;
+
+        var mentionsWallPlate =
+            ContainsIgnoreCase(comments, "wall plate") ||
+            ContainsIgnoreCase(comments, "wallplate") ||
+            ContainsIgnoreCase(comments, "wall socket") ||
+            ContainsIgnoreCase(comments, "socket/ plate") ||
+            ContainsIgnoreCase(comments, "socket/plate");
+
+        var indicatesReplacement =
+            ContainsIgnoreCase(comments, "replaced") ||
+            ContainsIgnoreCase(comments, "replace") ||
+            ContainsIgnoreCase(comments, "re terminate") ||
+            ContainsIgnoreCase(comments, "reterminate") ||
+            ContainsIgnoreCase(comments, "re-terminate") ||
+            ContainsIgnoreCase(comments, "new");
+
+        return mentionsWallPlate && indicatesReplacement;
     }
 
     /// <summary>
