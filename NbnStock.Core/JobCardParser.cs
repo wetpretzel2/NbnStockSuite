@@ -77,6 +77,11 @@ public class JobCardParser
                || ContainsIgnoreCase(jobType, "SwapODU")
                || ContainsIgnoreCase(jobType, "Swap ODU");
     }
+    // TODO:
+// Ground mount installs are reported by NBN as "Flexi Tin"
+// on the job card even though no NBN-supplied mount is used.
+// Do not automate this until a reliable identifier is found
+// in technician comments or another PDF field.
 
     private static string? MapMountType(string? mountInstalled)
     {
