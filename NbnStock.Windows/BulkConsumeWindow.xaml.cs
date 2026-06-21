@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -177,8 +177,9 @@ public partial class BulkConsumeWindow : Window
             foreach (var entry in ConsumeBatch)
                 if (entry.IsSerialised)
                 {
+                    // Serialised items are counted from SerialisedUnits where Status == OnHand.
+                    // Do not update StockItems.Quantity here, otherwise the aggregate counter can drift.
                     _serialisedRepo.MarkUnitInstalled(entry.SerialNumber);
-                    _stockRepo.ConsumeStock(entry.StockItemId, entry.Quantity);
                 }
                 else
                 {
