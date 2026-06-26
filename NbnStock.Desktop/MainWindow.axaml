@@ -22,7 +22,7 @@
                    Opacity="0.75" />
 
         <Border Grid.Row="2"
-                BorderThickness="1"
+            BorderThickness="1"
                 CornerRadius="8"
                 Padding="8">
             <Grid RowDefinitions="Auto,*" RowSpacing="6">
@@ -35,9 +35,11 @@
                     <TextBlock Grid.Column="3" Text="Qty" FontWeight="SemiBold" Opacity="0.75" />
                     <TextBlock Grid.Column="4" Text="Supply" FontWeight="SemiBold" Opacity="0.75" />
                 </Grid>
-
                 <ScrollViewer Grid.Row="1">
                     <ItemsControl x:Name="StockItemsList">
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
         </Border>
     </Grid>
 </Window>
