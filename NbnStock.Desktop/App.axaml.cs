@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using NbnStock.Desktop.ViewModels;
 
 namespace NbnStock.Desktop;
 
@@ -15,7 +16,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            var viewModel = new MainWindowViewModel();
+            desktop.MainWindow = new MainWindow(viewModel);
         }
 
         base.OnFrameworkInitializationCompleted();

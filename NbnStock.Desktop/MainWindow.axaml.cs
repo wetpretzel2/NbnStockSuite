@@ -2,14 +2,20 @@ using System;
 using Avalonia.Controls;
 using NbnStock.Core.Data;
 using NbnStock.Core.Repositories;
+using NbnStock.Desktop.ViewModels;
 
 namespace NbnStock.Desktop;
 
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    private readonly MainWindowViewModel _viewModel;
+    public MainWindow(MainWindowViewModel viewModel)
     {
         InitializeComponent();
+
+        _viewModel = viewModel;
+        DataContext = viewModel;
+
         LoadStockItems();
     }
 
