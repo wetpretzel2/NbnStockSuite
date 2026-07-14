@@ -29,11 +29,13 @@ public partial class MainWindow : Window
             var stockItems = repository.GetAllStockItems();
 
             StockItemsList.ItemsSource = stockItems;
-            StatusText.Text = $"Loaded {stockItems.Count} stock items from {DatabaseInitialiser.DatabasePath}";
+            _viewModel.StatusMessage =
+                $"Loaded {stockItems.Count} stock items from {DatabaseInitialiser.DatabasePath}";
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Failed to load stock items: {ex.Message}";
+            _viewModel.StatusMessage =
+                $"Failed to load stock items: {ex.Message}";
         }
     }
 }
