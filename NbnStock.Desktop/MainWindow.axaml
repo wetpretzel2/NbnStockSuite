@@ -3,8 +3,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:NbnStock.Core.Models;assembly=NbnStock.Core"
+        xmlns:viewModels="clr-namespace:NbnStock.Desktop.ViewModels"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="650"
         x:Class="NbnStock.Desktop.MainWindow"
+        x:DataType="viewModels:MainWindowViewModel"
         Title="NbnStockSuite Desktop">
 
     <Grid RowDefinitions="Auto,Auto,*" Margin="16" RowSpacing="12">
@@ -16,9 +18,8 @@
                        Opacity="0.75" />
         </StackPanel>
 
-        <TextBlock x:Name="StatusText"
-                   Grid.Row="1"
-                   Text="Loading stock items..."
+        <TextBlock Grid.Row="1"
+                   Text="{Binding StatusMessage}"
                    Opacity="0.75" />
 
         <Border Grid.Row="2"
