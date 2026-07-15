@@ -28,7 +28,12 @@ public partial class MainWindow : Window
             var repository = new StockRepository();
             var stockItems = repository.GetAllStockItems();
 
-            StockItemsList.ItemsSource = stockItems;
+            _viewModel.StockItems.Clear();
+
+            foreach (var stockItem in stockItems)
+            {
+                _viewModel.StockItems.Add(stockItem);
+            }
             _viewModel.StatusMessage =
                 $"Loaded {stockItems.Count} stock items from {DatabaseInitialiser.DatabasePath}";
         }
