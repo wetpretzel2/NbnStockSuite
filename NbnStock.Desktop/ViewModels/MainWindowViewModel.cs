@@ -1,10 +1,14 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 namespace NbnStock.Desktop.ViewModels;
+using System.Collections.ObjectModel;
+using NbnStock.Core.Models;
 
 public class MainWindowViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
+    public ObservableCollection<StockItem> StockItems { get; } = [];
+    private string _statusMessage = "Ready";
     
     private void OnPropertyChanged(
         [CallerMemberName] string? propertyName = null)
@@ -14,7 +18,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             new PropertyChangedEventArgs(propertyName));
     }
     
-    private string _statusMessage = "Ready";
+    
     
     public string StatusMessage
     {

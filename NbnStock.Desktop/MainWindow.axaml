@@ -37,7 +37,7 @@
                     <TextBlock Grid.Column="4" Text="Supply" FontWeight="SemiBold" Opacity="0.75" />
                 </Grid>
                 <ScrollViewer Grid.Row="1">
-                    <ItemsControl x:Name="StockItemsList">
+                    <ItemsControl ItemsSource="{Binding StockItems}">
                     </ItemsControl>
                 </ScrollViewer>
             </Grid>
