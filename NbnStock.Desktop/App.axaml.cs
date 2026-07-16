@@ -20,7 +20,13 @@ public partial class App : Application
             DatabaseInitialiser.Initialise();
 
             var viewModel = new MainWindowViewModel();
-            desktop.MainWindow = new MainWindow(viewModel);
+
+            viewModel.LoadStockItems();
+
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = viewModel
+            };
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -7,6 +7,7 @@ using NbnStock.Core.Repositories;
 using NbnStock.Core.Services;
 using NbnStock.Windows.Services;
 
+
 namespace NbnStock.Windows;
 
 public partial class MainWindow : Window
