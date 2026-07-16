@@ -9,7 +9,7 @@
         x:DataType="viewModels:MainWindowViewModel"
         Title="NbnStockSuite Desktop">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="16" RowSpacing="12">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16" RowSpacing="12">
         <StackPanel Grid.Row="0" Spacing="4">
             <TextBlock Text="NbnStockSuite Desktop"
                        FontSize="26"
@@ -21,9 +21,30 @@
         <TextBlock Grid.Row="1"
                    Text="{Binding StatusMessage}"
                    Opacity="0.75" />
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    Spacing="8">
 
-        <Border Grid.Row="2"
-            BorderThickness="1"
+            <Button Content="Receive" />
+            <Button Content="Consume" />
+
+            <Separator Margin="8,0" />
+
+            <Button Content="Bulk Receive" />
+            <Button Content="Bulk Consume" />
+            <Button Content="Refresh" />
+
+            <Separator Margin="8,0" />
+
+            <Button Content="User Items" />
+            <Button Content="Reports" />
+            
+            <Button Content="Settings" />
+
+        </StackPanel>
+
+        <Border Grid.Row="3"
+                BorderThickness="1"
                 CornerRadius="8"
                 Padding="8">
             <Grid RowDefinitions="Auto,*" RowSpacing="6">
