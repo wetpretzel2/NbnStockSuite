@@ -23,7 +23,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            DatabaseInitialiser.Initialise();
+            
 
             var repository = new StockRepository();
             var stockItems = repository.GetAllStockItems();
