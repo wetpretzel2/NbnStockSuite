@@ -14,6 +14,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     public ObservableCollection<StockItem> StockItems { get; } = [];
     private string _statusMessage = "Ready";
+    private StockItem? _selectedStockItem;
     
     private void OnPropertyChanged(
         [CallerMemberName] string? propertyName = null)
@@ -56,6 +57,19 @@ public class MainWindowViewModel : INotifyPropertyChanged
                 return;
 
             _statusMessage = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public StockItem? SelectedStockItem
+    {
+        get => _selectedStockItem;
+        set
+        {
+            if (_selectedStockItem == value)
+                return;
+
+            _selectedStockItem = value;
             OnPropertyChanged();
         }
     }

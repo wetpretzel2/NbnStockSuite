@@ -36,33 +36,33 @@
                     <TextBlock Grid.Column="3" Text="Qty" FontWeight="SemiBold" Opacity="0.75" />
                     <TextBlock Grid.Column="4" Text="Supply" FontWeight="SemiBold" Opacity="0.75" />
                 </Grid>
-                <ScrollViewer Grid.Row="1">
-                    <ItemsControl ItemsSource="{Binding StockItems}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:StockItem">
-                                <Grid ColumnDefinitions="120,*,120,120,120"
-                                      Margin="0,2">
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding StockItems}"
+                         SelectedItem="{Binding SelectedStockItem}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:StockItem">
+                            <Grid ColumnDefinitions="120,*,120,120,120"
+                                  Margin="0,2">
 
-                                    <TextBlock Grid.Column="0"
-                                               Text="{Binding ItemCode}" />
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding ItemCode}" />
 
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding Name}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Name}" />
 
-                                    <TextBlock Grid.Column="2"
-                                               Text="{Binding Category}" />
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Category}" />
 
-                                    <TextBlock Grid.Column="3"
-                                               Text="{Binding Quantity}" />
+                                <TextBlock Grid.Column="3"
+                                           Text="{Binding Quantity}" />
 
-                                    <TextBlock Grid.Column="4"
-                                               Text="{Binding SupplyType}" />
+                                <TextBlock Grid.Column="4"
+                                           Text="{Binding SupplyType}" />
 
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </Grid>
         </Border>
     </Grid>
