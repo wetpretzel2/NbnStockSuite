@@ -6,7 +6,7 @@
     x:Class="NbnStock.Desktop.Views.InventoryView"
     x:DataType="viewModels:InventoryViewModel">
 
-    <Border Grid.Row="3"
+    <Border 
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="8">

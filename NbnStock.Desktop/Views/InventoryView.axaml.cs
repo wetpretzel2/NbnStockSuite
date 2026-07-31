@@ -1,6 +1,11 @@
-﻿namespace NbnStock.Desktop.Views;
+﻿using Avalonia.Controls;
 
-public class InventoryView_axaml
+namespace NbnStock.Desktop.Views;
+
+public partial class InventoryView : UserControl
 {
-    
+    public InventoryView()
+    {
+        InitializeComponent();
+    }
 }
