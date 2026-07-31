@@ -17,10 +17,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     
     public MainWindowViewModel()
     {
-        var inventory = new InventoryViewModel();
-        inventory.LoadStockItems();
-
-        CurrentPage = inventory;
+        CurrentPage = new InventoryViewModel();
     }
     private string _statusMessage = "Ready";
     private StockItem? _selectedStockItem;

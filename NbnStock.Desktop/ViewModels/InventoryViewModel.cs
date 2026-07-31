@@ -16,6 +16,10 @@ public class InventoryViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<StockItem> StockItems { get; } = [];
+    public InventoryViewModel()
+    {
+        LoadStockItems();
+    }
 
     public string StatusMessage
     {
