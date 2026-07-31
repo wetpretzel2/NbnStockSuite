@@ -21,8 +21,6 @@ public partial class App : Application
 
             var viewModel = new MainWindowViewModel();
 
-            viewModel.LoadStockItems();
-
             desktop.MainWindow = new MainWindow
             {
                 DataContext = viewModel
