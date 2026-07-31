@@ -11,8 +11,17 @@ namespace NbnStock.Desktop.ViewModels;
 
 public class MainWindowViewModel : INotifyPropertyChanged
 {
+    public object CurrentPage { get; }
     public event PropertyChangedEventHandler? PropertyChanged;
     public ObservableCollection<StockItem> StockItems { get; } = [];
+    
+    public MainWindowViewModel()
+    {
+        var inventory = new InventoryViewModel();
+        inventory.LoadStockItems();
+
+        CurrentPage = inventory;
+    }
     private string _statusMessage = "Ready";
     private StockItem? _selectedStockItem;
     
