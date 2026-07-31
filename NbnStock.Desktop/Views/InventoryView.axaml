@@ -1,0 +1,53 @@
+﻿<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="clr-namespace:NbnStock.Core.Models;assembly=NbnStock.Core"
+    xmlns:viewModels="clr-namespace:NbnStock.Desktop.ViewModels"
+    x:Class="NbnStock.Desktop.Views.InventoryView"
+    x:DataType="viewModels:InventoryViewModel">
+
+    <Border Grid.Row="3"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="8">
+            <Grid RowDefinitions="Auto,*" RowSpacing="6">
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="120,*,120,120,120"
+                      Margin="0,0,0,4">
+                    <TextBlock Grid.Column="0" Text="Code" FontWeight="SemiBold" Opacity="0.75" />
+                    <TextBlock Grid.Column="1" Text="Item" FontWeight="SemiBold" Opacity="0.75" />
+                    <TextBlock Grid.Column="2" Text="Category" FontWeight="SemiBold" Opacity="0.75" />
+                    <TextBlock Grid.Column="3" Text="Qty" FontWeight="SemiBold" Opacity="0.75" />
+                    <TextBlock Grid.Column="4" Text="Supply" FontWeight="SemiBold" Opacity="0.75" />
+                </Grid>
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding StockItems}"
+                         SelectedItem="{Binding SelectedStockItem}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:StockItem">
+                            <Grid ColumnDefinitions="120,*,120,120,120"
+                                  Margin="0,2">
+
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding ItemCode}" />
+
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Name}" />
+
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Category}" />
+
+                                <TextBlock Grid.Column="3"
+                                           Text="{Binding Quantity}" />
+
+                                <TextBlock Grid.Column="4"
+                                           Text="{Binding SupplyType}" />
+
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+</UserControl>
