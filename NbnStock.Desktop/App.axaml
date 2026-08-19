@@ -14,7 +14,7 @@
         <DataTemplate DataType="viewModels:InventoryViewModel">
             <views:InventoryView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type viewModels:ReceiveViewModel}">
+        <DataTemplate DataType="viewModels:ReceiveViewModel">
             <views:ReceiveView />
         </DataTemplate>
 
