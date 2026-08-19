@@ -1,0 +1,11 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:NbnStock.Desktop.ViewModels"
+             x:Class="NbnStock.Desktop.Views.ReceiveView"
+             x:DataType="viewModels:ReceiveViewModel">
+
+    <TextBlock Text="Receive Stock"
+               FontSize="24"
+               FontWeight="SemiBold" />
+
+</UserControl>

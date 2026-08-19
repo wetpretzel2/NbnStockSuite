@@ -1,6 +1,11 @@
-﻿namespace NbnStock.Desktop.Views;
+﻿using Avalonia.Controls;
 
-public class ReceiveView_axaml
+namespace NbnStock.Desktop.Views;
+
+public partial class ReceiveView : UserControl
 {
-    
+    public ReceiveView()
+    {
+        InitializeComponent();
+    }
 }

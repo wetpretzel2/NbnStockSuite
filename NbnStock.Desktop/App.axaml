@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:viewModels="clr-namespace:NbnStock.Desktop.ViewModels"
              xmlns:views="clr-namespace:NbnStock.Desktop.Views"
+             
              x:Class="NbnStock.Desktop.App"
              RequestedThemeVariant="Default">
 
@@ -12,6 +13,9 @@
 
         <DataTemplate DataType="viewModels:InventoryViewModel">
             <views:InventoryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:ReceiveViewModel}">
+            <views:ReceiveView />
         </DataTemplate>
 
     </Application.DataTemplates>

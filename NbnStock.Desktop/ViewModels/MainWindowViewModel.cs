@@ -12,7 +12,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public object? CurrentPage
     {
         get => _currentPage;
-        set
+        private set
         {
             if (_currentPage == value)
                 return;
@@ -52,6 +52,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
             _statusMessage = value;
             OnPropertyChanged();
         }
+    }
+    public void ShowReceive()
+    {
+        CurrentPage = new ReceiveViewModel();
     }
 
     
