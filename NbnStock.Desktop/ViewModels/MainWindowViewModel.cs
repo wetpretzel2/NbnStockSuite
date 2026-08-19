@@ -8,6 +8,8 @@ namespace NbnStock.Desktop.ViewModels;
 public class MainWindowViewModel : INotifyPropertyChanged
 {
     private object? _currentPage;
+    public RelayCommand ReceiveCommand { get; }
+    public RelayCommand InventoryCommand { get; }
 
     public object? CurrentPage
     {
@@ -27,6 +29,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public MainWindowViewModel()
     {
         CurrentPage = new InventoryViewModel();
+
+        ReceiveCommand = new RelayCommand(ShowReceive);
+        InventoryCommand = new RelayCommand(ShowInventory);
     }
     private string _statusMessage = "Ready";
     
@@ -58,5 +63,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         CurrentPage = new ReceiveViewModel();
     }
 
-    
+    public void ShowInventory()
+    {
+        CurrentPage = new InventoryViewModel();
+    }
 }
