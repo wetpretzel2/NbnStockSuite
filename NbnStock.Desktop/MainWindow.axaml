@@ -42,7 +42,8 @@
 
             <Button Content="Bulk Receive" />
             <Button Content="Bulk Consume" />
-            <Button Content="Refresh" />
+            <Button Content="Refresh"
+                    Command="{Binding RefreshCommand}" />
 
             <Separator Margin="8,0" />
 

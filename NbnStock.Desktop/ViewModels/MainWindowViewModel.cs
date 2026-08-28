@@ -10,6 +10,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private object? _currentPage;
     public RelayCommand ReceiveCommand { get; }
     public RelayCommand InventoryCommand { get; }
+    public RelayCommand RefreshCommand { get; }
 
     public object? CurrentPage
     {
@@ -24,14 +25,22 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
     public event PropertyChangedEventHandler? PropertyChanged;
-    
-    
     public MainWindowViewModel()
     {
         CurrentPage = new InventoryViewModel();
 
-        ReceiveCommand = new RelayCommand(ShowReceive);
         InventoryCommand = new RelayCommand(ShowInventory);
+        ReceiveCommand = new RelayCommand(ShowReceive);
+        RefreshCommand = new RelayCommand(RefreshCurrentPage);
+    }
+    
+    
+    public void RefreshCurrentPage()
+    {
+        if (CurrentPage is InventoryViewModel inventoryViewModel)
+        {
+            inventoryViewModel.LoadStockItems();
+        }
     }
     private string _statusMessage = "Ready";
     
