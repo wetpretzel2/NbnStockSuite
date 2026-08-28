@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using NbnStock.Core.Data;
 using NbnStock.Core.Models;
-using NbnStock.Core.Repositories;
+using NbnStock.Core.Services;
+
 
 namespace NbnStock.Desktop.ViewModels;
 
@@ -51,12 +53,18 @@ public class InventoryViewModel : INotifyPropertyChanged
     {
         try
         {
-            var repository = new StockRepository();
-            var stockItems = repository.GetAllStockItems();
+            var inventoryService = new InventoryService();
+            var stockItems = inventoryService.GetCurrentInventory();
+            var sortedItems = stockItems
+                .OrderByDescending(item => item.IsSerialised)
+                .ThenBy(item => item.SupplyType == SupplyType.TechSupplied ? 1 : 0)
+                .ThenBy(item => GetCategorySortWeight(item.Category))
+                .ThenBy(item => item.Name)
+                .ToList();
 
             StockItems.Clear();
 
-            foreach (var stockItem in stockItems)
+            foreach (var stockItem in sortedItems)
             {
                 StockItems.Add(stockItem);
             }
@@ -69,6 +77,16 @@ public class InventoryViewModel : INotifyPropertyChanged
             StatusMessage =
                 $"Failed to load stock items: {ex.Message}";
         }
+    }
+    private static int GetCategorySortWeight(string? category)
+    {
+        return category?.ToLowerInvariant() switch
+        {
+            "mounts" => 1,
+            "cabling" => 2,
+            "hardware" => 3,
+            _ => 4
+        };
     }
 
     private void OnPropertyChanged(
