@@ -10,14 +10,21 @@ namespace NbnStock.Desktop.ViewModels;
 public class ReceiveViewModel : INotifyPropertyChanged
 {
     private StockItem? _selectedStockItem;
+    private string _quantityInput = "";
+    private string _serialInput = "";
+    private string _statusMessage = "";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<StockItem> StockItems { get; } = [];
 
     public ObservableCollection<PendingStockEntry> PendingBatch { get; } = [];
+
+    public int BatchEntryCount => PendingBatch.Count;
+
     public RelayCommand AddConsumableCommand { get; }
     public RelayCommand AddSerialCommand { get; }
+    public RelayCommand ClearBatchCommand { get; }
 
     public StockItem? SelectedStockItem
     {
@@ -33,9 +40,7 @@ public class ReceiveViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsConsumableSelected));
         }
     }
-    private string _quantityInput = "";
-    private string _serialInput = "";
-    private string _statusMessage = "";
+
     public string QuantityInput
     {
         get => _quantityInput;
@@ -62,6 +67,19 @@ public class ReceiveViewModel : INotifyPropertyChanged
         }
     }
 
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set
+        {
+            if (_statusMessage == value)
+                return;
+
+            _statusMessage = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool IsSerialisedSelected =>
         SelectedStockItem?.IsSerialised == true;
 
@@ -71,8 +89,10 @@ public class ReceiveViewModel : INotifyPropertyChanged
     public ReceiveViewModel()
     {
         LoadStockItems();
+
         AddConsumableCommand = new RelayCommand(AddConsumable);
         AddSerialCommand = new RelayCommand(AddSerial);
+        ClearBatchCommand = new RelayCommand(ClearBatch);
     }
 
     private void LoadStockItems()
@@ -94,6 +114,7 @@ public class ReceiveViewModel : INotifyPropertyChanged
             StockItems.Add(item);
         }
     }
+
     private void AddConsumable()
     {
         if (SelectedStockItem == null)
@@ -115,6 +136,8 @@ public class ReceiveViewModel : INotifyPropertyChanged
             SerialNumber = "N/A"
         });
 
+        OnPropertyChanged(nameof(BatchEntryCount));
+
         StatusMessage = $"Added {quantity} × {SelectedStockItem.Name}";
         QuantityInput = "";
     }
@@ -126,8 +149,12 @@ public class ReceiveViewModel : INotifyPropertyChanged
 
         var serial = SerialInput.Trim();
 
-        if (serial.StartsWith("S", System.StringComparison.OrdinalIgnoreCase))
+        if (serial.StartsWith(
+                "S",
+                System.StringComparison.OrdinalIgnoreCase))
+        {
             serial = serial[1..];
+        }
 
         if (string.IsNullOrWhiteSpace(serial))
         {
@@ -142,7 +169,9 @@ public class ReceiveViewModel : INotifyPropertyChanged
                     serial,
                     System.StringComparison.OrdinalIgnoreCase)))
         {
-            StatusMessage = $"Serial {serial} is already in the current batch.";
+            StatusMessage =
+                $"Serial {serial} is already in the current batch.";
+
             SerialInput = "";
             return;
         }
@@ -156,9 +185,20 @@ public class ReceiveViewModel : INotifyPropertyChanged
             Quantity = 1,
             SerialNumber = serial
         });
+
+        OnPropertyChanged(nameof(BatchEntryCount));
+
         StatusMessage = $"Added {SelectedStockItem.Name} — {serial}";
         SerialInput = "";
-        
+    }
+
+    private void ClearBatch()
+    {
+        PendingBatch.Clear();
+
+        OnPropertyChanged(nameof(BatchEntryCount));
+
+        StatusMessage = "Batch cleared.";
     }
 
     private static int GetCategorySortWeight(string? category)
@@ -178,19 +218,5 @@ public class ReceiveViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(
             this,
             new PropertyChangedEventArgs(propertyName));
-    }
-    
-
-    public string StatusMessage
-    {
-        get => _statusMessage;
-        set
-        {
-            if (_statusMessage == value)
-                return;
-
-            _statusMessage = value;
-            OnPropertyChanged();
-        }
     }
 }

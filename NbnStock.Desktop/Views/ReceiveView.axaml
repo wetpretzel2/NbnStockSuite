@@ -4,7 +4,7 @@
              x:Class="NbnStock.Desktop.Views.ReceiveView"
              x:DataType="viewModels:ReceiveViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*"
+    <Grid RowDefinitions="Auto,Auto,*,Auto"
           RowSpacing="16">
 
         <TextBlock Grid.Row="0"
@@ -32,10 +32,11 @@
                 <TextBox Width="120"
                          HorizontalAlignment="Left"
                          Text="{Binding QuantityInput}" />
+
                 <Button Content="Add to Batch"
                         Command="{Binding AddConsumableCommand}"
                         HorizontalAlignment="Left" />
-                
+
             </StackPanel>
 
             <StackPanel Spacing="6"
@@ -45,10 +46,12 @@
                 <TextBox Width="320"
                          HorizontalAlignment="Left"
                          Text="{Binding SerialInput}" />
+
                 <Button Content="Add to Batch"
                         Command="{Binding AddSerialCommand}"
                         HorizontalAlignment="Left" />
             </StackPanel>
+
             <TextBlock Text="{Binding StatusMessage}"
                        Opacity="0.75" />
 
@@ -78,6 +81,20 @@
             </DataGrid.Columns>
 
         </DataGrid>
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    Spacing="16">
+
+            <TextBlock VerticalAlignment="Center">
+                <Run Text="Total Items in Batch: " />
+                <Run Text="{Binding BatchEntryCount}" />
+            </TextBlock>
+
+            <Button Content="Clear Batch"
+                    Command="{Binding ClearBatchCommand}" />
+
+        </StackPanel>
 
     </Grid>
 
