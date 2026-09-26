@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,6 +11,7 @@ namespace NbnStock.Desktop.ViewModels;
 public class ReceiveViewModel : INotifyPropertyChanged
 {
     private StockItem? _selectedStockItem;
+    private PendingStockEntry? _selectedBatchEntry;
     private string _quantityInput = "";
     private string _serialInput = "";
     private string _statusMessage = "";
@@ -25,6 +27,8 @@ public class ReceiveViewModel : INotifyPropertyChanged
     public RelayCommand AddConsumableCommand { get; }
     public RelayCommand AddSerialCommand { get; }
     public RelayCommand ClearBatchCommand { get; }
+    public RelayCommand RemoveSelectedCommand { get; }
+    public RelayCommand ReceiveBatchCommand { get; }
 
     public StockItem? SelectedStockItem
     {
@@ -38,6 +42,19 @@ public class ReceiveViewModel : INotifyPropertyChanged
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSerialisedSelected));
             OnPropertyChanged(nameof(IsConsumableSelected));
+        }
+    }
+
+    public PendingStockEntry? SelectedBatchEntry
+    {
+        get => _selectedBatchEntry;
+        set
+        {
+            if (_selectedBatchEntry == value)
+                return;
+
+            _selectedBatchEntry = value;
+            OnPropertyChanged();
         }
     }
 
@@ -93,6 +110,8 @@ public class ReceiveViewModel : INotifyPropertyChanged
         AddConsumableCommand = new RelayCommand(AddConsumable);
         AddSerialCommand = new RelayCommand(AddSerial);
         ClearBatchCommand = new RelayCommand(ClearBatch);
+        RemoveSelectedCommand = new RelayCommand(RemoveSelected);
+        ReceiveBatchCommand = new RelayCommand(ReceiveBatch);
     }
 
     private void LoadStockItems()
@@ -151,7 +170,7 @@ public class ReceiveViewModel : INotifyPropertyChanged
 
         if (serial.StartsWith(
                 "S",
-                System.StringComparison.OrdinalIgnoreCase))
+                StringComparison.OrdinalIgnoreCase))
         {
             serial = serial[1..];
         }
@@ -167,10 +186,22 @@ public class ReceiveViewModel : INotifyPropertyChanged
                 string.Equals(
                     entry.SerialNumber,
                     serial,
-                    System.StringComparison.OrdinalIgnoreCase)))
+                    StringComparison.OrdinalIgnoreCase)))
         {
             StatusMessage =
                 $"Serial {serial} is already in the current batch.";
+
+            SerialInput = "";
+            return;
+        }
+
+        var serialisedRepository = new SerialisedUnitRepository();
+        var existingUnit = serialisedRepository.GetSerialisedUnitBySerial(serial);
+
+        if (existingUnit != null)
+        {
+            StatusMessage =
+                $"Serial {serial} already exists in inventory.";
 
             SerialInput = "";
             return;
@@ -195,10 +226,75 @@ public class ReceiveViewModel : INotifyPropertyChanged
     private void ClearBatch()
     {
         PendingBatch.Clear();
+        SelectedBatchEntry = null;
 
         OnPropertyChanged(nameof(BatchEntryCount));
 
         StatusMessage = "Batch cleared.";
+    }
+
+    private void RemoveSelected()
+    {
+        if (SelectedBatchEntry == null)
+        {
+            StatusMessage = "Select an item to remove.";
+            return;
+        }
+
+        var removedEntry = SelectedBatchEntry;
+
+        PendingBatch.Remove(removedEntry);
+        SelectedBatchEntry = null;
+
+        OnPropertyChanged(nameof(BatchEntryCount));
+
+        StatusMessage = removedEntry.IsSerialised
+            ? $"Removed {removedEntry.Name} — {removedEntry.SerialNumber}"
+            : $"Removed {removedEntry.Quantity} × {removedEntry.Name}";
+    }
+
+    private void ReceiveBatch()
+    {
+        if (PendingBatch.Count == 0)
+        {
+            StatusMessage = "There are no items to receive.";
+            return;
+        }
+
+        var stockRepository = new StockRepository();
+        var serialisedRepository = new SerialisedUnitRepository();
+        var receivedCount = PendingBatch.Count;
+
+        try
+        {
+            foreach (var entry in PendingBatch)
+            {
+                if (entry.IsSerialised)
+                {
+                    serialisedRepository.ReceiveSerialisedUnit(
+                        entry.StockItemId,
+                        entry.SerialNumber);
+                }
+                else
+                {
+                    stockRepository.ReceiveStock(
+                        entry.StockItemId,
+                        entry.Quantity);
+                }
+            }
+
+            PendingBatch.Clear();
+            SelectedBatchEntry = null;
+            OnPropertyChanged(nameof(BatchEntryCount));
+
+            StatusMessage =
+                $"Successfully received {receivedCount} entries into inventory.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage =
+                $"Failed to receive batch: {ex.Message}";
+        }
     }
 
     private static int GetCategorySortWeight(string? category)

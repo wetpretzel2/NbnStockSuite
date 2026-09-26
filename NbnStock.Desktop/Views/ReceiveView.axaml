@@ -94,6 +94,9 @@
             <Button Content="Clear Batch"
                     Command="{Binding ClearBatchCommand}" />
 
+            <Button Content="Receive Batch"
+                    Command="{Binding ReceiveBatchCommand}" />
+
         </StackPanel>
 
     </Grid>
