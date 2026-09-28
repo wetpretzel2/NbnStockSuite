@@ -59,6 +59,8 @@
 
         <DataGrid Grid.Row="2"
                   ItemsSource="{Binding PendingBatch}"
+                  SelectedItem="{Binding SelectedBatchEntry}"
+                  SelectionMode="Single"
                   AutoGenerateColumns="False"
                   IsReadOnly="True">
 
@@ -93,6 +95,9 @@
 
             <Button Content="Clear Batch"
                     Command="{Binding ClearBatchCommand}" />
+
+            <Button Content="Remove Selected"
+                    Command="{Binding RemoveSelectedCommand}" />
 
             <Button Content="Receive Batch"
                     Command="{Binding ReceiveBatchCommand}" />
