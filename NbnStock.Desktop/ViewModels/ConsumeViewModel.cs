@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NbnStock.Core.Models;
-using NbnStock.Core.Repositories;
+using NbnStock.Core.Services;
 
 namespace NbnStock.Desktop.ViewModels;
 
@@ -91,10 +91,10 @@ public class ConsumeViewModel : INotifyPropertyChanged
 
     private void LoadStockItems()
     {
-        var repository = new StockRepository();
+        var inventoryService = new InventoryService();
 
-        var sortedItems = repository
-            .GetAllStockItems()
+        var sortedItems = inventoryService
+            .GetCurrentInventory()
             .OrderByDescending(item => item.IsSerialised)
             .ThenBy(item => item.SupplyType == SupplyType.TechSupplied ? 1 : 0)
             .ThenBy(item => GetCategorySortWeight(item.Category))
@@ -104,7 +104,9 @@ public class ConsumeViewModel : INotifyPropertyChanged
         StockItems.Clear();
 
         foreach (var item in sortedItems)
+        {
             StockItems.Add(item);
+        }
     }
 
     private static int GetCategorySortWeight(string? category)

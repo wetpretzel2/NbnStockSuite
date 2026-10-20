@@ -1,0 +1,77 @@
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:NbnStock.Desktop.ViewModels"
+             x:Class="NbnStock.Desktop.Views.ConsumeView"
+             x:DataType="viewModels:ConsumeViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto"
+          RowSpacing="16">
+
+        <TextBlock Grid.Row="0"
+                   Text="Consume Stock"
+                   FontSize="24"
+                   FontWeight="SemiBold" />
+
+        <StackPanel Grid.Row="1"
+                    Spacing="12">
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="Select Item" />
+
+                <ComboBox ItemsSource="{Binding StockItems}"
+                          SelectedItem="{Binding SelectedStockItem}"
+                          DisplayMemberBinding="{Binding Name}"
+                          Width="320"
+                          HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="Available Stock" />
+
+                <TextBlock Text="{Binding AvailableQuantity}"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+            </StackPanel>
+
+            <StackPanel Spacing="6"
+                        IsVisible="{Binding IsConsumableSelected}">
+
+                <TextBlock Text="Quantity to Consume" />
+
+                <TextBox Width="120"
+                         HorizontalAlignment="Left"
+                         Text="{Binding QuantityInput}" />
+
+            </StackPanel>
+
+            <StackPanel Spacing="6"
+                        IsVisible="{Binding IsSerialisedSelected}">
+
+                <TextBlock Text="Serial Number" />
+
+                <TextBox Width="320"
+                         HorizontalAlignment="Left"
+                         Text="{Binding SerialInput}" />
+
+            </StackPanel>
+
+            <TextBlock Text="{Binding StatusMessage}"
+                       Opacity="0.75" />
+
+        </StackPanel>
+
+        <Border Grid.Row="2"
+                BorderThickness="1"
+                BorderBrush="Gray"
+                CornerRadius="4"
+                Padding="16">
+
+            <TextBlock Text="Select an item to begin consuming stock."
+                       Opacity="0.65" />
+
+        </Border>
+
+    </Grid>
+
+</UserControl>
