@@ -36,7 +36,8 @@
 
             <Button Content="Receive"
                     Command="{Binding ReceiveCommand}" />
-            <Button Content="Consume" />
+            <Button Content="Consume"
+                    Command="{Binding ConsumeCommand}" />
 
             <Separator Margin="8,0" />
 

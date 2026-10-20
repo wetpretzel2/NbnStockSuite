@@ -11,6 +11,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public RelayCommand ReceiveCommand { get; }
     public RelayCommand InventoryCommand { get; }
     public RelayCommand RefreshCommand { get; }
+    public RelayCommand ConsumeCommand { get; }
 
     public object? CurrentPage
     {
@@ -32,6 +33,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         InventoryCommand = new RelayCommand(ShowInventory);
         ReceiveCommand = new RelayCommand(ShowReceive);
         RefreshCommand = new RelayCommand(RefreshCurrentPage);
+        ConsumeCommand = new RelayCommand(ShowConsume);
     }
     
     
@@ -75,5 +77,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public void ShowInventory()
     {
         CurrentPage = new InventoryViewModel();
+    }
+    public void ShowConsume()
+    {
+        CurrentPage = new ConsumeViewModel();
     }
 }
