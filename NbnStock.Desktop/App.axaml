@@ -17,6 +17,9 @@
         <DataTemplate DataType="viewModels:ReceiveViewModel">
             <views:ReceiveView />
         </DataTemplate>
+        <DataTemplate DataType="viewModels:ConsumeViewModel">
+            <views:ConsumeView />
+        </DataTemplate>
 
     </Application.DataTemplates>
 
