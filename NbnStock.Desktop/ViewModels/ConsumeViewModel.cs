@@ -19,6 +19,23 @@ public class ConsumeViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<StockItem> StockItems { get; } = [];
+    
+    public ObservableCollection<PendingStockEntry> PendingBatch { get; } = [];
+
+    private PendingStockEntry? _selectedBatchEntry;
+
+    public PendingStockEntry? SelectedBatchEntry
+    {
+        get => _selectedBatchEntry;
+        set
+        {
+            if (_selectedBatchEntry == value)
+                return;
+
+            _selectedBatchEntry = value;
+            OnPropertyChanged();
+        }
+    }
 
     public StockItem? SelectedStockItem
     {
