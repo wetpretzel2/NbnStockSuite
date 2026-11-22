@@ -21,6 +21,9 @@ public class ConsumeViewModel : INotifyPropertyChanged
     public ObservableCollection<StockItem> StockItems { get; } = [];
     
     public ObservableCollection<PendingStockEntry> PendingBatch { get; } = [];
+    
+    public RelayCommand AddConsumableCommand { get; }
+    
 
     private PendingStockEntry? _selectedBatchEntry;
 
@@ -104,6 +107,45 @@ public class ConsumeViewModel : INotifyPropertyChanged
     public ConsumeViewModel()
     {
         LoadStockItems();
+        AddConsumableCommand = new RelayCommand(AddConsumable);
+    }
+    private void AddConsumable()
+    {
+        if (SelectedStockItem is not { IsSerialised: false } item)
+        {
+            StatusMessage = "Select a consumable stock item.";
+            return;
+        }
+
+        if (!int.TryParse(QuantityInput, out var quantity) || quantity <= 0)
+        {
+            StatusMessage = "Enter a quantity greater than zero.";
+            return;
+        }
+
+        var stagedQuantity = PendingBatch
+            .Where(entry => !entry.IsSerialised && entry.StockItemId == item.Id)
+            .Sum(entry => (long)entry.Quantity);
+        var remainingQuantity = Math.Max(0, item.Quantity - stagedQuantity);
+
+        if (quantity > remainingQuantity)
+        {
+            StatusMessage = $"Only {remainingQuantity} available to stage for {item.Name}.";
+            return;
+        }
+
+        PendingBatch.Add(new PendingStockEntry
+        {
+            StockItemId = item.Id,
+            ItemCode = item.ItemCode,
+            Name = item.Name,
+            IsSerialised = false,
+            Quantity = quantity,
+            SerialNumber = "N/A"
+        });
+
+        StatusMessage = $"Added {quantity} × {item.Name} to the batch.";
+        QuantityInput = "";
     }
 
     private void LoadStockItems()
