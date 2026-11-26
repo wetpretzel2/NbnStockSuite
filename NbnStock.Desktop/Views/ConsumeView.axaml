@@ -5,7 +5,7 @@
              x:Class="NbnStock.Desktop.Views.ConsumeView"
              x:DataType="viewModels:ConsumeViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto"
+    <Grid RowDefinitions="Auto,Auto,*"
           RowSpacing="16">
 
         <TextBlock Grid.Row="0"
@@ -43,6 +43,10 @@
                          HorizontalAlignment="Left"
                          Text="{Binding QuantityInput}" />
 
+                <Button Content="Add to Batch"
+                        Command="{Binding AddConsumableCommand}"
+                        HorizontalAlignment="Left" />
+
             </StackPanel>
 
             <StackPanel Spacing="6"
@@ -61,16 +65,32 @@
 
         </StackPanel>
 
-        <Border Grid.Row="2"
-                BorderThickness="1"
-                BorderBrush="Gray"
-                CornerRadius="4"
-                Padding="16">
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding PendingBatch}"
+                  SelectedItem="{Binding SelectedBatchEntry}"
+                  SelectionMode="Single"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True">
 
-            <TextBlock Text="Select an item to begin consuming stock."
-                       Opacity="0.65" />
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Item Code"
+                                    Binding="{Binding ItemCode}"
+                                    Width="120" />
 
-        </Border>
+                <DataGridTextColumn Header="Name"
+                                    Binding="{Binding Name}"
+                                    Width="*" />
+
+                <DataGridTextColumn Header="Qty"
+                                    Binding="{Binding Quantity}"
+                                    Width="80" />
+
+                <DataGridTextColumn Header="Serial Number"
+                                    Binding="{Binding SerialNumber}"
+                                    Width="200" />
+            </DataGrid.Columns>
+
+        </DataGrid>
 
     </Grid>
 
